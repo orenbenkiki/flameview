@@ -86,7 +86,7 @@ def _main() -> None:  # pylint: disable=too-many-locals
     parser.add_argument('--version', action='store_true',
                         help='Print the version information and exit')
 
-    parser.add_argument('input', metavar='FLAMEGRAPH',
+    parser.add_argument('input', metavar='FLAMEGRAPH', nargs='?',
                         help='The flamegraph data file to read; '
                         'default: "-", read from standard input')
 
@@ -320,7 +320,12 @@ BEFORE_CSS = """
     box-sizing: border-box;
 }
 
-table#graph {
+#width {
+    margin: 0;
+    padding: 0;
+}
+
+#graph {
     margin: 0;
     padding: 0;
     table-layout: fixed;
@@ -328,15 +333,13 @@ table#graph {
     border-collapse: collapse;
 }
 
-td.self,
-td.leaf,
-td.sum {
+td {
     margin: 0;
     padding: 0;
     position: relative;
 }
 
-div.label {
+.label {
     min-width: 0;
     overflow: hidden;
 }
@@ -426,15 +429,9 @@ var root_id = "N0";
 // Highlight all group cells on entry.
 function on_over(event) {
     cell = event.currentTarget;
-    console.log('OVER')
-    console.log(cell.id)
     var group_id = cells_data[cell.id].group_id;
-    console.log('GROUP')
-    console.log(group_id)
     groups_data[group_id].cell_ids.forEach((group_cell_id) => {
         if (group_cell_id != cell.id) {
-            console.log('DO')
-            console.log(group_cell_id)
             document.getElementById(group_cell_id).classList.add("group_hover");
         }
     });
@@ -504,7 +501,7 @@ window.onresize = update_cells
 function update_cells() {
     var visible_columns_mask = compute_visible_columns_mask();
     var visible_size = compute_visible_size(visible_columns_mask);
-    var graph_width = document.body.clientWidth;
+    var graph_width = document.getElementById("width").clientWidth - 10;
     var scale_factor = graph_width / visible_size;
     for (cell_id in cells_data) {
         update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);
@@ -569,7 +566,11 @@ function update_cell(visible_columns_mask, scale_factor, visible_size, cell_id) 
 
     cell.colSpan = cell_span;
     cell.style.display = null;
-    cell.style.width = cell_size * scale_factor;
+    var label = cell.querySelector(".label");
+    if (label) {
+        label.style.width = cell_size * scale_factor;
+    }
+
     var size = cell.querySelector(".size");
     if (!size) {
         return;
@@ -647,6 +648,7 @@ function compute_groups_columns_masks() {
 """[1:]
 
 AFTER_HTML = """
+<div id="width"/>
 </body>
 </html>
 """[1:]
