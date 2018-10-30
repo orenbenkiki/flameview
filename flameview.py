@@ -405,6 +405,8 @@ td.group_hover {
 BEFORE_JAVASCRIPT = """
 </style>
 <script type="text/javascript">
+/*jslint browser: true*/
+
 /*** Generated Data: ***/
 """[1:]
 
@@ -422,102 +424,17 @@ var selected_cell_ids = [];
 // The id of the root cell that covers everything (by convention).
 var root_id = "N0";
 
-// Cell hover highlights all cells in a group.
-// The cell itself is highlighted using the :hover CSS selector.
-// The other cells in the group are highlighted using the group_hover class.
-
-// Highlight all group cells on entry.
-function on_over(event) {
-    cell = event.currentTarget;
-    var group_id = cells_data[cell.id].group_id;
-    groups_data[group_id].cell_ids.forEach((group_cell_id) => {
-        if (group_cell_id != cell.id) {
-            document.getElementById(group_cell_id).classList.add("group_hover");
-        }
-    });
-}
-
-// Unhighlight all group cells on exit.
-function on_out(event) {
-    cell = event.currentTarget;
-    group_id = cells_data[cell.id].group_id;
-    groups_data[group_id].cell_ids.forEach((group_cell_id) => {
-        if (group_cell_id != cell.id) {
-            document.getElementById(group_cell_id).classList.remove("group_hover");
-        }
-    });
-}
-
-// Select a cell for filtering the visible graph content.
-//
-// A simple click just shows the selected cell columns, a control-click adds/removes selected cells.
-//
-// When multiple cells are selected, the lowest-level one restricts the set of columns,
-// and each additional higher-level cell further restricts the columns to these covered by the group the cell belongs to.
-function on_click(event) {
-    cell = event.currentTarget;
-
-    if (!event.ctrlKey) {
-        selected_cell_ids.forEach((cell_id) => {
-            document.getElementById(cell_id).classList.remove("selected");
-        });
-        selected_cell_ids = [cell.id];
-        cell.classList.add("selected");
-        update_cells();
-        return;
-    }
-
-    var new_selected_cell_ids = [];
-    selected_cell_ids.forEach((cell_id) => {
-        if (cell_id != cell.id) {
-            new_selected_cell_ids.push(cell_id);
-        }
-    });
-
-    if (new_selected_cell_ids.length === selected_cell_ids.length) {
-        selected_cell_ids.push(cell.id);
-        cell.classList.add("selected");
-        update_cells();
-        return;
-    }
-
-    cell.classList.remove("selected");
-    selected_cell_ids = new_selected_cell_ids;
-
-    if (new_selected_cell_ids.length == 0) {
-        selected_cell_ids = [root_id];
-        document.getElementById(root_id).classList.add("selected");
-    }
-
-    update_cells();
-}
-
-// On resize, update all the cell widths.
-window.onresize = update_cells
-
-// Update all the cells visibility and width.
-//
-// This must be done every time the selected cell and/or the display width change.
-function update_cells() {
-    var visible_columns_mask = compute_visible_columns_mask();
-    var visible_size = compute_visible_size(visible_columns_mask);
-    var graph_width = document.getElementById("width").clientWidth - 10;
-    var scale_factor = graph_width / visible_size;
-    for (cell_id in cells_data) {
-        update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);
-    }
-}
-
 // Compute which columns are visible given the current selection.
 function compute_visible_columns_mask() {
-    if (selected_cell_ids.length == 1) {
-        selected_cell_id = selected_cell_ids[0];
+    "use strict";
+    if (selected_cell_ids.length === 1) {
+        var selected_cell_id = selected_cell_ids[0];
         return cells_data[selected_cell_id].columns_mask;
     }
 
     var lowest_cell_id = undefined;
     var lowest_level = undefined;
-    selected_cell_ids.forEach((cell_id) => {
+    selected_cell_ids.forEach(function (cell_id) {
         var cell_level = cells_data[cell_id].level;
         if (lowest_cell_id === undefined || lowest_level > cell_level) {
             lowest_cell_id = cell_id;
@@ -526,10 +443,14 @@ function compute_visible_columns_mask() {
     });
 
     var visible_columns_mask = cells_data[lowest_cell_id].columns_mask.slice();
-    selected_cell_ids.forEach((cell_id) => {
-        group_id = cells_data[cell_id].group_id;
-        var columns_mask = group_id ? groups_data[group_id].columns_mask : cells_data[cell_id].columns_mask;
-        columns_mask.forEach((is_column_in_group, column_index) => {
+    selected_cell_ids.forEach(function (cell_id) {
+        var group_id = cells_data[cell_id].group_id;
+        var columns_mask = (
+            group_id
+            ? groups_data[group_id].columns_mask
+            : cells_data[cell_id].columns_mask
+        );
+        columns_mask.forEach(function (is_column_in_group, column_index) {
             visible_columns_mask[column_index] *= is_column_in_group;
         });
     });
@@ -538,21 +459,24 @@ function compute_visible_columns_mask() {
 
 // Compute the total size of the visible columns.
 function compute_visible_size(visible_columns_mask) {
+    "use strict";
     var visible_size = 0;
-    column_sizes.forEach((column_size, column_index) => {
+    column_sizes.forEach(function (column_size, column_index) {
         visible_size += column_size * visible_columns_mask[column_index];
-    })
+    });
     return visible_size;
 }
 
 // Update the visibility and width of a specific cell.
-function update_cell(visible_columns_mask, scale_factor, visible_size, cell_id) {
+function update_cell(visible_columns_mask,
+        scale_factor, visible_size, cell_id) {
+    "use strict";
     var cell_data = cells_data[cell_id];
     var cell = document.getElementById(cell_id);
 
     var cell_size = 0;
     var cell_span = 0;
-    cell_data.columns_mask.forEach((column_is_used, column_index) => {
+    cell_data.columns_mask.forEach(function (column_is_used, column_index) {
         if (column_is_used > 0 && visible_columns_mask[column_index] > 0) {
             cell_span += 1;
             cell_size += column_sizes[column_index];
@@ -576,72 +500,177 @@ function update_cell(visible_columns_mask, scale_factor, visible_size, cell_id) 
         return;
     }
 
-    if (cell_size == total_size) {
+    if (cell_size === total_size) {
         size.innerText = cell_size;
         return;
     }
 
-    if (cell_size == visible_size) {
-        var percentage_of_total = (100 * cell_size / total_size).toFixed(2);
-        size.innerHTML = cell_size + " = " + percentage_of_total + "%<br/>out of: " + total_size + " total";
+    if (cell_size === visible_size) {
+        var percentage_of_total = 100 * cell_size / total_size;
+        percentage_of_total = percentage_of_total.toFixed(2);
+        size.innerHTML =
+                cell_size
+                + " = " + percentage_of_total + "%<br/>"
+                + "out of: " + total_size + " total";
         return;
     }
 
-    var percentage_of_visible = (100 * cell_size / visible_size).toFixed(2);
-    var suffix = visible_size == total_size ? " total" : " visible";
-    size.innerHTML = cell_size + " = " + percentage_of_visible + "%<br/>out of: " + visible_size + suffix;
+    var percentage_of_visible = 100 * cell_size / visible_size;
+    percentage_of_visible = percentage_of_visible.toFixed(2);
+    var suffix = (
+        visible_size === total_size
+        ? " total"
+        : " visible"
+    );
+    size.innerHTML =
+            cell_size
+            + " = " + percentage_of_visible + "%<br/>"
+            + "out of: " + visible_size + suffix;
 }
 
-
-// Properly initialize everything on load.
-window.onload = () => {
-    register_handlers();
-    total_size = compute_visible_size(cells_data[root_id].columns_mask);
-    compute_groups_columns_masks();
-    on_click({"currentTarget": document.getElementById(root_id), "ctrlKey": false});
+// Update all the cells visibility and width.
+//
+// Must be done every time the selected cell and/or the display width change.
+function update_cells() {
+    "use strict";
+    var visible_columns_mask = compute_visible_columns_mask();
+    var visible_size = compute_visible_size(visible_columns_mask);
+    var graph_width = document.getElementById("width").clientWidth - 10;
+    var scale_factor = graph_width / visible_size;
+    Object.keys(cells_data).forEach(function (cell_id) {
+        update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);
+    });
 }
 
-// Compute the total size of the visible columns.
-function compute_visible_size(visible_columns_mask) {
-    var visible_size = 0;
-    column_sizes.forEach((column_size, column_index) => {
-        visible_size += column_size * visible_columns_mask[column_index];
-    })
-    return visible_size;
+// Cell hover highlights all cells in a group.
+// The cell itself is highlighted using the :hover CSS selector.
+// The other cells in the group are highlighted using the group_hover class.
+
+// Highlight all group cells on entry.
+function on_over(event) {
+    "use strict";
+    var cell = event.currentTarget;
+    var group_id = cells_data[cell.id].group_id;
+    groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
+        if (group_cell_id !== cell.id) {
+            var group_cell = document.getElementById(group_cell_id);
+            group_cell.classList.add("group_hover");
+        }
+    });
+}
+
+// Unhighlight all group cells on exit.
+function on_out(event) {
+    "use strict";
+    var cell = event.currentTarget;
+    var group_id = cells_data[cell.id].group_id;
+    groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
+        if (group_cell_id !== cell.id) {
+            var group_cell = document.getElementById(group_cell_id);
+            group_cell.classList.remove("group_hover");
+        }
+    });
+}
+
+// Select a cell for filtering the visible graph content.
+//
+// A simple click just shows the selected cell columns,
+// a control-click adds/removes selected cells.
+//
+// When multiple cells are selected, the lowest-level one restricts the set of
+// columns, and each additional higher-level cell further restricts the columns
+// to these covered by the group the cell belongs to.
+function on_click(event) {
+    "use strict";
+    var cell = event.currentTarget;
+
+    if (!event.ctrlKey) {
+        selected_cell_ids.forEach(function (cell_id) {
+            document.getElementById(cell_id).classList.remove("selected");
+        });
+        selected_cell_ids = [cell.id];
+        cell.classList.add("selected");
+        update_cells();
+        return;
+    }
+
+    var new_selected_cell_ids = [];
+    selected_cell_ids.forEach(function (cell_id) {
+        if (cell_id !== cell.id) {
+            new_selected_cell_ids.push(cell_id);
+        }
+    });
+
+    if (new_selected_cell_ids.length === selected_cell_ids.length) {
+        selected_cell_ids.push(cell.id);
+        cell.classList.add("selected");
+        update_cells();
+        return;
+    }
+
+    cell.classList.remove("selected");
+    selected_cell_ids = new_selected_cell_ids;
+
+    if (new_selected_cell_ids.length === 0) {
+        selected_cell_ids = [root_id];
+        document.getElementById(root_id).classList.add("selected");
+    }
+
+    update_cells();
 }
 
 // Attach handlers to table cells.
 function register_handlers() {
-    for (cell_id in cells_data) {
-        cell = document.getElementById(cell_id);
+    "use strict";
+    Object.keys(cells_data).forEach(function (cell_id) {
+        var cell = document.getElementById(cell_id);
         if (!cell.classList.contains("empty")) {
             cell.onclick = on_click;
-            cell_data = cells_data[cell_id];
+            var cell_data = cells_data[cell_id];
             if (cell_data.group_id) {
                 cell.onmouseover = on_over;
                 cell.onmouseout = on_out;
             }
         }
-    }
+    });
 }
 
 function compute_groups_columns_masks() {
-    for (group_id in groups_data) {
-        group_data = groups_data[group_id];
-        group_data.cell_ids.forEach((cell_id) => {
-            cell_data = cells_data[cell_id];
+    "use strict";
+    Object.keys(groups_data).forEach(function (group_id) {
+        var group_data = groups_data[group_id];
+        group_data.cell_ids.forEach(function (cell_id) {
+            var cell_data = cells_data[cell_id];
             if (!group_data.columns_mask) {
-                group_data["columns_mask"] = cell_data.columns_mask.slice();
+                group_data.columns_mask = cell_data.columns_mask.slice();
             } else {
-                cell_data.columns_mask.forEach((is_column_used, column_index) => {
+                var columns_mask = cell_data.columns_mask;
+                columns_mask.forEach(function (is_column_used, column_index) {
                     if (is_column_used > 0) {
                         group_data.columns_mask[column_index] = 1;
                     }
                 });
             }
         });
-    };
+    });
 }
+
+function on_load() {
+    "use strict";
+    register_handlers();
+    total_size = compute_visible_size(cells_data[root_id].columns_mask);
+    compute_groups_columns_masks();
+    on_click({
+        "currentTarget": document.getElementById(root_id),
+        "ctrlKey": false
+    });
+}
+
+// On resize, update all the cell widths.
+window.onresize = update_cells;
+
+// Properly initialize everything on load.
+window.onload = on_load;
 </script>
 </head>
 <body>
@@ -706,10 +735,11 @@ def _print_groups_data(file: TextIO, groups: Dict[str, List[int]]) -> None:
         //   columns_mask: A 0/1 mask of all the columns used by the group cells.
         var groups_data = {
     """))
-    for group_name, cell_ids in sorted(groups.items()):
-        file.write('    "%s": { "cell_ids": ["%s"] },\n'
-                   % (group_name, '", "'.join(['N' + str(id) for id in sorted(cell_ids)])))
-    file.write('};\n\n')
+    group_lines = ['    "%s": {"cell_ids": ["%s"]}'
+                   % (group_name, '", "'.join(['N' + str(id) for id in sorted(cell_ids)]))
+                    for group_name, cell_ids in sorted(groups.items())]
+    file.write(',\n'.join(group_lines))
+    file.write('\n};\n\n')
 
 
 def _print_cells_data(file: TextIO, rows: List[List[Node]], columns_count: int) -> None:
@@ -719,28 +749,33 @@ def _print_cells_data(file: TextIO, rows: List[List[Node]], columns_count: int) 
         //   columns_mask: A 0/1 mask of all the columns used by the cell.
         //   group_id: The group the cell belongs to, if any.
         var cells_data = {
-    """)[1:])
+    """)[1:-1])
+    is_first = True
     for level, row in enumerate(rows):
         for node in row:
+            if not is_first:
+                file.write(',')
+            file.write('\n    ')
             _print_cell_data(file, node, columns_count, level)
-    file.write('};\n')
+            is_first = False
+    file.write('\n};\n')
 
 
 def _print_cell_data(file: TextIO, node: Node, columns_count: int, level: int) -> None:
-    file.write('    "N%s": {\n' % node.index)
-    file.write('        "level": %s,\n' % level)
-    file.write('        "columns_mask": [%s],\n'
+    file.write('"N%s": {\n' % node.index)
+    file.write('        "level": %s' % level)
+    file.write(',\n        "columns_mask": [%s]'
                % _columns_mask(node.column, node.column_span, columns_count))
     if node.group:
-        file.write('        "group_id": "%s",\n' % node.group)
-    file.write('    },\n')
+        file.write(',\n        "group_id": "%s"' % node.group)
+    file.write('\n    }')
 
 
 def _columns_mask(column: int, columns_span: int, columns_count: int) -> str:
     prefix = ["0"] * column
     middle = ["1"] * columns_span
     suffix = ["0"] * (columns_count - column - columns_span)
-    return ','.join(prefix + middle + suffix)
+    return ', '.join(prefix + middle + suffix)
 
 
 def _print_column_sizes(file, column_sizes: List[float]) -> None:
