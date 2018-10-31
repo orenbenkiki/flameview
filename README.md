@@ -12,6 +12,12 @@ Download `flameview.py` and place it in your path. You might need to tweak the
 `#!` line to execute the correct python interpreter; by default it invokes
 `python3`.
 
+## STATUS
+
+This is a beta version. It provides the basic functionality and seems to work in
+Firefox, Chrome and Edge. However, it hasn't been heavily tested. Feedback is
+welcome.
+
 ## USAGE
 
 The output of ``flameview.py -h`` is:
@@ -43,7 +49,7 @@ The output of ``flameview.py -h`` is:
                          aqua, yellow, purple, orange
       --output HTML      The HTML file to write; default: "-", write to standard
                          output
-      --version          Print the version information and exit
+      --version          Print the version information (0.1-b0) and exit
 
     INPUT: A flamegraph file. Each line must be in the format:
 
@@ -161,9 +167,8 @@ The second part controls appearance, using the following CSS selectors:
   cells.
 
   The background color of non-empty cells is hard-coded in the `td` element
-  according to the color palette specified when the output is generated. It
-  might arguably make sense to define some color classes instead, and switch
-  palettes using CSS instead.
+  according to the chosen color palette. It might arguably make sense to define
+  some color classes instead, and switch palettes using CSS instead.
 
 * `.tooltip`: Class for the `div` contained in each `td` to hold the tooltip.
   This uses absolute positioning and is only visible when hovering over the
@@ -215,6 +220,8 @@ FURTHER WORK
 * Using `table` for layout is frowned upon in the CSS community. It might be
   better to use the new CSS grid layout instead.
 
+The code is pretty simple and short (~1K LOC total, including the Python, CSS,
+Javascript and HTML). It gets a clean bill of health from `mypy` and `pylint`.
 Pull requests are welcome.
 
 ## LICENSE

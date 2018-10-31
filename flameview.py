@@ -18,7 +18,8 @@ from typing import Optional
 from typing import TextIO
 from typing import Tuple
 
-VERSION = "0.1"
+
+VERSION = "0.1-b0"
 
 
 # pylint: disable=missing-docstring
@@ -91,7 +92,7 @@ def _main() -> None:  # pylint: disable=too-many-locals
                         help='The HTML file to write; default: "-", write to standard output')
 
     parser.add_argument('--version', action='store_true',
-                        help='Print the version information and exit')
+                        help='Print the version information (%s) and exit' % VERSION)
 
     parser.add_argument('input', metavar='FLAMEGRAPH', nargs='?',
                         help='The flamegraph data file to read; '
