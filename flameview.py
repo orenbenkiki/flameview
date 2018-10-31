@@ -364,22 +364,20 @@ BEFORE_CSS = """
     box-sizing: border-box;
 }
 
-#width {
-    margin: 0 10px 0 10px;
+#width, #graph, #row, #height {
+    margin: 0;
     padding: 0;
 }
 
-#graph {
-    margin: 0;
-    padding: 0;
-    table-layout: fixed;
-    border-collapse: collapse;
-}
-
-td {
-    margin: 0;
-    padding: 0;
+.row {
     position: relative;
+}
+
+.empty,
+.leaf,
+.self,
+.sum {
+    position: absolute;
 }
 
 .label {
@@ -392,10 +390,6 @@ td {
     position: absolute;
     z-index: 1;
 }
-
-td:hover .tooltip {
-    visibility: visible;
-}
 """
 
 DEFAULT_APPEARANCE_CSS = """
@@ -405,15 +399,8 @@ DEFAULT_APPEARANCE_CSS = """
     font-family: sans-serif;
 }
 
-#graph {
-    border-width: 1px;
-    border-style: solid;
-    border-color: black;
-    background-color: ivory;
-}
-
-.self,
 .leaf,
+.self,
 .sum {
     border-width: 1px;
     border-style: solid;
@@ -422,10 +409,8 @@ DEFAULT_APPEARANCE_CSS = """
     text-align: center;
 }
 
-td:hover.self,
-td:hover.leaf,
-td:hover.sum,
-td.group_hover {
+.label:hover,
+.group_hover .label {
     background-color: white !important;
 }
 
@@ -437,14 +422,30 @@ td.group_hover {
     font-weight: bold;
 }
 
+.selected .name {
+    font-weight: bold;
+}
+
 .tooltip {
     border-style: solid;
     border-width: 2px;
     border-radius: 4px;
     border-color: black;
     background-color: white;
-    white-space: nowrap;
     padding: 0.25em 0.5em 0.25em 0.5em;
+}
+
+.leaf:hover .tooltip,
+.self:hover .tooltip,
+.sum:hover .tooltip {
+    visibility: visible;
+    animation: disappear 0s ease-in 3s forwards;
+}
+
+@keyframes disappear {
+    to {
+        visibility: hidden;
+    }
 }
 """
 
@@ -513,6 +514,29 @@ function compute_visible_size(visible_columns_mask) {
     return visible_size;
 }
 
+// Convert a number to a human-friendly precision.
+//
+// Allow no more than 2 decimal digits after the `.`, unless the number is very
+// small, in which case allow as many as needed so that the first two
+// significant digits are visible.
+function stringify(number) {
+    "use strict";
+    if (number === 0) {
+        return number;
+    }
+    if (number < 0) {
+        return "-" + stringify(-number);
+    }
+    var precision = 1;
+    var result = 0;
+    while (result === 0) {
+        precision *= 10;
+        result = Math.round(number * precision) / precision;
+    }
+    precision *= 10;
+    return Math.round(number * precision) / precision;
+}
+
 // Update the visibility and width of a specific cell.
 function update_cell(visible_columns_mask,
         scale_factor, visible_size, cell_id) {
@@ -520,26 +544,28 @@ function update_cell(visible_columns_mask,
     var cell_data = cells_data[cell_id];
     var cell = document.getElementById(cell_id);
 
+    var cell_offset_is_done = false;
+    var cell_offset = 0;
     var cell_size = 0;
-    var cell_span = 0;
-    cell_data.columns_mask.forEach(function (column_is_used, column_index) {
-        if (column_is_used > 0 && visible_columns_mask[column_index] > 0) {
-            cell_span += 1;
-            cell_size += column_sizes[column_index];
+    cell_data.columns_mask.forEach(function (is_column_used, column_index) {
+        if (visible_columns_mask[column_index] > 0) {
+            if (is_column_used > 0) {
+                cell_offset_is_done = true;
+                cell_size += column_sizes[column_index];
+            } else if (!cell_offset_is_done) {
+                cell_offset += column_sizes[column_index];
+            }
         }
     });
 
-    if (cell_span === 0) {
+    if (!cell_offset_is_done) {
         cell.style.display = "none";
         return;
     }
 
-    cell.colSpan = cell_span;
     cell.style.display = null;
-    var label = cell.querySelector(".label");
-    if (label) {
-        label.style.width = (cell_size * scale_factor) + 'px';
-    }
+    cell.style.left = Math.round(cell_offset * scale_factor) + "px";
+    cell.style.width = Math.round(cell_size * scale_factor) + "px";
 
     var size = cell.querySelector(".size");
     if (!size) {
@@ -572,23 +598,6 @@ function update_cell(visible_columns_mask,
             + "out of: " + stringify(visible_size) + suffix;
 }
 
-function stringify(number) {
-    if (number === 0) {
-        return number
-    }
-    if (number < 0) {
-        return '-' + stringify(-number)
-    }
-    var precision = 1
-    var result = 0
-    while (result === 0) {
-        precision *= 10
-        result = Math.round(number * precision) / precision
-    }
-    precision *= 10
-    return Math.round(number * precision) / precision
-}
-
 // Update all the cells visibility and width.
 //
 // Must be done every time the selected cell and/or the display width change.
@@ -597,7 +606,9 @@ function update_cells() {
     var visible_columns_mask = compute_visible_columns_mask();
     var visible_size = compute_visible_size(visible_columns_mask);
     var graph_width = document.getElementById("width").clientWidth;
-    var scale_factor = graph_width / visible_size;
+    var graph = document.getElementById("graph");
+    graph.style.width = graph_width + "px";
+    var scale_factor = (graph_width - 2) / visible_size;
     Object.keys(cells_data).forEach(function (cell_id) {
         update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);
     });
@@ -862,28 +873,29 @@ def _print_h1(file: TextIO, title: str) -> None:
 
 
 def _print_table(file: TextIO, countname: str, palette: str, rows: List[List[Node]]) -> None:
-    file.write('<table id="graph">\n')
+    file.write('<div id="graph">\n')
     for row in rows:
         _print_row(file, countname, palette, row)
-    file.write('</table>\n')
+    file.write('</div>\n')
 
 
 def _print_row(file: TextIO, countname: str, palette: str, row: List[Node]) -> None:
-    file.write('<tr>\n')
+    file.write('<div class="row">\n')
     for node in row:
         _print_node(file, countname, palette, node)
-    file.write('</tr>\n')
+    file.write('<div class="height">&nbsp;</div>\n')
+    file.write('</div>\n')
 
 
 def _print_node(file: TextIO, countname: str, palette: str, node: Node) -> None:
-    file.write('<td id="N%s" class="%s" colspan="%s"' % (node.index, node.klass, node.columns_span))
+    file.write('<div id="N%s" class="%s"' % (node.index, node.klass))
     if node.klass == 'empty':
-        file.write('>&nbsp;</td>\n')
+        file.write('>&nbsp;</div>\n')
         return
     file.write(' style="background-color: %s">\n' % _node_color(node, palette))
     _print_tooltip(file, countname, node)
     _print_label(file, node)
-    file.write('</td>\n')
+    file.write('</div>\n')
 
 
 def _node_color(node: Node, palette: str) -> str:

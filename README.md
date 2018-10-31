@@ -99,9 +99,9 @@ The `flameview` program does provide some features that `flamegraph` lacks:
   are the cells that will remain visible if you add the cell to the selection
   using control-click.
 
-  Hovering over any cell will display a tooltip containing its name, its
-  measurement, the percentage of this measurement out of the total visible
-  graph, and the additional tooltip HTML, if any, from the input file.
+  Hovering over any cell will display (for a few seconds) a tooltip containing
+  its name, its measurement, the percentage of this measurement out of the total
+  visible graph, and the additional tooltip HTML, if any, from the input file.
 
   Hovering over the "all" cell when a subset of the graph is visible will
   display the percentages of the currently visible (selected) graph out of the
@@ -150,10 +150,10 @@ according to https://validator.w3.org/), with the inevitable embedded javascript
 code (clean according to https://jslint.com/). The file requires no external
 resources, and contains hopefully helpful comments to help tweaking it.
 
-The HTML uses a `table` element for laying out the graph, which arguably should
-be replaced by using CSS grid layout. I had less luck getting CSS grid layout to
-behave well across browsers, but that might be my lack of CSS skills more than
-an inherent issue.
+The HTML uses absolute positioning to control the horizontal location of the cells,
+and lets HTML automatically determine the height of each row (one "normal"
+text line height). I tried using both `table` and CSS ``grid`` layout but
+neither approach gave me the needed control across browsers.
 
 It should be "easy" to tweak the appearance of the graph by tweaking the CSS.
 The embedded CSS stylesheet is given in two parts. The first part controls the
@@ -162,43 +162,51 @@ switching to CSS grid layout).
 
 The second part controls appearance, using the following CSS selectors:
 
-* `#graph`: The table element containing the whole graph.
+* `#graph`: The `div` containing the whole graph.
 
-* `.self`, `.leaf`, `.sum`, `.empty`: Classes for the `td` elements,
-  reflecting the kind of cell. Currently the background color of empty cells is
-  set to `ivory`, and simple border/centering rules are applied to the non-empty
-  cells.
+* '#width': An empty `div` following the graph, used to detect the available
+  vertical space. If you force its width, the graph will adjust accordingly.
 
-  The background color of non-empty cells is hard-coded in the `td` element
+* `.row`: Class for a `div` containing a single graph row. Uses relative
+  positioning.
+
+* `.height`: An invisible `div` containing `&nbsp;` to force the height of the
+  row. If you adjust its height, the row will adjust accordingly. Note the
+  actual row cells do not affect the height because they use absolute
+  positioning.
+
+* `.self`, `.leaf`, `.sum`, `.empty`: Classes for `div` elements,
+  reflecting the kind of cell. Currently simple border/centering rules are
+  applied to the non-empty cells.
+
+  The background color of non-empty cells is hard-coded in the `div` element
   according to the chosen color palette. It might arguably make sense to define
   some color classes instead, and switch palettes using CSS instead.
 
 * `.tooltip`: Class for the `div` contained in each `td` to hold the tooltip.
   This uses absolute positioning and is only visible when hovering over the
-  `td`. Currently both the visibility control and the positioning of this `div`
-  are hard-wired in the layout CSS.
+  cell.
+
 * `.size`: Class for an empty `span` inside the tooltip `div`, which is
   automatically filled with the computed measurement sum and percentage
   depending on the visible cells. Currently this has no special formatting.
-
 
 * `.name`: Class for a `span` inside the tooltip `div`, which holds the name of
   the cell. Note the name may be different from the label; specifically, when
   the label is "(self)", the name is "name;(self)". Currently the CSS just makes
   the name font *italic*.
 
-* `.label`: Class for the `div` contained in each `td` to hold the label.
-  This needs to be a nested `div` to allow for `overflow: hidden`, which
-  is not supported for `td` elements for some obscure reason.
+* `.label`: Class for the `div` contained in each non-empty cell to hold the
+  label. Making this a sibling rather than a parent of the tooltip makes it
+  easier to apply CSS rules only to it.
 
-* `.group_hover`: Class applied to each other `td` that has the same name as
-  the one under the mouse. The `td` directly under the mouse uses the `:hover`
+* `.group_hover`: Class applied to each other cell that has the same name as
+  the one under the mouse. The cell directly under the mouse uses the `:hover`
   selector as usual. Currently both turn the cell(s) background color to
   `white`, which makes them stand out of the rest of the colored cells.
 
-* `.selected`: Class for the `td` elements of the currently selected cell(s).
-  Currently this just makes the label font **bold**. This might be too subtle
-  an effect.
+* `.selected`: Class for the currently selected cell(s). Currently this just
+  makes the label font **bold**. This might be too subtle an effect.
 
 You can append additional CSS rules into the HTML to tweak the default
 appearance CSS, or omit the default and provide a full replacement CSS
