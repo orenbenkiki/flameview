@@ -8,9 +8,10 @@ of any supporting modules.
 
 ## INSTALLATION
 
-Download `flameview.py` and place it in your path. You might need to tweak the
-`#!` line to execute the correct python interpreter; by default it invokes
-`python3`.
+Download
+[flameview.py](https://raw.githubusercontent.com/orenbenkiki/flameview/master/flameview.py)
+and place it in your path. You might need to tweak the `#!` line to execute the
+correct python interpreter; by default it invokes `python3`.
 
 ## STATUS
 
@@ -164,7 +165,7 @@ The second part controls appearance, using the following CSS selectors:
 
 * `#graph`: The `div` containing the whole graph.
 
-* '#width': An empty `div` following the graph, used to detect the available
+* `#width`: An empty `div` following the graph, used to detect the available
   vertical space. If you force its width, the graph will adjust accordingly.
 
 * `.row`: Class for a `div` containing a single graph row. Uses relative
@@ -228,8 +229,9 @@ FURTHER WORK
   technically trivial to provide a selection between several built-in
   `--csstheme` options. Actually designing such options is much more work.
 
-* Using `table` for layout is frowned upon in the CSS community. It might be
-  better to use the new CSS grid layout instead.
+* Using absolute positioning for layout is basically giving up on the CSS layout
+  engine. It would be nice if CSS grid layout could be made to handle this for
+  us instead.
 
 The code is pretty simple and short (~1K LOC total, including the Python, CSS,
 Javascript and HTML). It gets a clean bill of health from `mypy` and `pylint`.
