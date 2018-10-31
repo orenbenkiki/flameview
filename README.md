@@ -14,9 +14,9 @@ Download `flameview.py` and place it in your path. You might need to tweak the
 
 ## STATUS
 
-This is a beta version. It provides the basic functionality and seems to work in
-Firefox, Chrome and Edge. However, it hasn't been heavily tested. Feedback is
-welcome.
+This is a beta version **0.1-b0**. It provides the basic functionality and seems
+to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
+Feedback is welcome.
 
 ## USAGE
 
