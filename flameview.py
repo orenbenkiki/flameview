@@ -307,6 +307,7 @@ def _empty_node(start_column: int, end_column: int) -> Node:
 
 
 BEFORE_TITLE = """
+<!doctype html!>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -737,7 +738,7 @@ def _print_groups_data(file: TextIO, groups: Dict[str, List[int]]) -> None:
     """))
     group_lines = ['    "%s": {"cell_ids": ["%s"]}'
                    % (group_name, '", "'.join(['N' + str(id) for id in sorted(cell_ids)]))
-                    for group_name, cell_ids in sorted(groups.items())]
+                   for group_name, cell_ids in sorted(groups.items())]
     file.write(',\n'.join(group_lines))
     file.write('\n};\n\n')
 
