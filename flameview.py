@@ -19,9 +19,10 @@ from typing import TextIO
 from typing import Tuple
 
 
-VERSION = "0.1-b0"
+VERSION = "0.1-b1"
 
 
+# pylint: disable=too-many-lines
 # pylint: disable=missing-docstring
 # pylint: disable=too-few-public-methods
 # pylint: disable=too-many-instance-attributes
@@ -59,6 +60,10 @@ def _main() -> None:  # pylint: disable=too-many-locals
 
         OUTPUT: An HTML file visualizing the flame graph.
     """))
+    parser.add_argument('--minpercent', metavar='PERCENT', default='0.1', type=float,
+                        help='The minimal percent of the entries to display; '
+                        'default: 0.1 (1/1000 of the total)')
+
     parser.add_argument('--sortby', metavar='SORT_KEY',
                         default='name', choices=['name', 'counts'],
                         help='How to sort nodes:\n'
@@ -107,11 +112,12 @@ def _main() -> None:  # pylint: disable=too-many-locals
     root = _load_input_data(args.input)
     _add_self_nodes(root)
     _compute_sizes(root)
+    _prune_small_nodes(root, args.minpercent)
     counts = _count_tree_names(root)
     groups = _compute_tree_groups(root, counts)
 
-    column_sizes = _compute_tree_column_sizes(
-        root, {'name': _by_name, 'counts': _by_size}[args.sortby])
+    column_sizes = \
+        _compute_tree_column_sizes(root, {'name': _by_name, 'counts': _by_size}[args.sortby])
     rows = _compute_tree_rows(root, len(column_sizes))
 
     _print_output_data(args, groups, column_sizes, rows)
@@ -205,6 +211,35 @@ def _compute_sizes(parent: Node) -> None:
         parent.total_size += node.total_size
 
 
+def _prune_small_nodes(root: Node, min_percent: float) -> None:
+    if min_percent <= 0 or min_percent >= 100:
+        return
+    min_size = root.total_size * min_percent / 100.0
+    _prune_small_tree(root, min_size)
+
+
+def _prune_small_tree(parent: Node, min_size: float) -> None:
+    assert parent.total_size >= min_size
+
+    large_nodes: Dict[str, Node] = {}
+    total_small_nodes_size = 0.0
+    for name, node in parent.nodes.items():
+        if node.total_size < min_size:
+            total_small_nodes_size += node.total_size
+        else:
+            large_nodes[name] = node
+            _prune_small_tree(node, min_size)
+
+    if len(large_nodes) == len(parent.nodes):
+        return
+
+    small_node = Node('(small)')
+    small_node.entry = Entry(total_small_nodes_size, '')
+    small_node.total_size = total_small_nodes_size
+    parent.nodes = large_nodes
+    parent.nodes['...'] = small_node
+
+
 def _count_tree_names(root: Node) -> Dict[str, int]:
     counts: Dict[str, int] = {}
     _count_names(root, counts)
@@ -240,7 +275,7 @@ def _by_name(node: Node) -> str:
 
 
 def _by_size(node: Node) -> float:
-    return node.total_size
+    return -node.total_size
 
 
 def _compute_tree_column_sizes(parent: Node, sort_key: Callable[[Node], Any]) -> List[float]:
@@ -330,7 +365,7 @@ BEFORE_CSS = """
 }
 
 #width {
-    margin: 0;
+    margin: 0 10px 0 10px;
     padding: 0;
 }
 
@@ -338,7 +373,6 @@ BEFORE_CSS = """
     margin: 0;
     padding: 0;
     table-layout: fixed;
-    border-collapse: collapse;
     border-collapse: collapse;
 }
 
@@ -374,15 +408,17 @@ DEFAULT_APPEARANCE_CSS = """
 #graph {
     border-width: 1px;
     border-style: solid;
+    border-color: black;
     background-color: ivory;
 }
 
 .self,
 .leaf,
 .sum {
-    border-width: 2px;
+    border-width: 1px;
     border-style: solid;
-    border-radius: 2px;
+    border-radius: 4px;
+    border-color: black;
     text-align: center;
 }
 
@@ -404,7 +440,8 @@ td.group_hover {
 .tooltip {
     border-style: solid;
     border-width: 2px;
-    border-radius: 6px;
+    border-radius: 4px;
+    border-color: black;
     background-color: white;
     white-space: nowrap;
     padding: 0.25em 0.5em 0.25em 0.5em;
@@ -501,7 +538,7 @@ function update_cell(visible_columns_mask,
     cell.style.display = null;
     var label = cell.querySelector(".label");
     if (label) {
-        label.style.width = cell_size * scale_factor;
+        label.style.width = (cell_size * scale_factor) + 'px';
     }
 
     var size = cell.querySelector(".size");
@@ -516,25 +553,40 @@ function update_cell(visible_columns_mask,
 
     if (cell_size === visible_size) {
         var percentage_of_total = 100 * cell_size / total_size;
-        percentage_of_total = percentage_of_total.toFixed(2);
         size.innerHTML =
-                cell_size
-                + " = " + percentage_of_total + "%<br/>"
-                + "out of: " + total_size + " total";
+                stringify(cell_size)
+                + " = " + stringify(percentage_of_total) + "%<br/>"
+                + "out of: " + stringify(total_size) + " total";
         return;
     }
 
     var percentage_of_visible = 100 * cell_size / visible_size;
-    percentage_of_visible = percentage_of_visible.toFixed(2);
     var suffix = (
         visible_size === total_size
         ? " total"
         : " visible"
     );
     size.innerHTML =
-            cell_size
-            + " = " + percentage_of_visible + "%<br/>"
-            + "out of: " + visible_size + suffix;
+            stringify(cell_size)
+            + " = " + stringify(percentage_of_visible) + "%<br/>"
+            + "out of: " + stringify(visible_size) + suffix;
+}
+
+function stringify(number) {
+    if (number === 0) {
+        return number
+    }
+    if (number < 0) {
+        return '-' + stringify(-number)
+    }
+    var precision = 1
+    var result = 0
+    while (result === 0) {
+        precision *= 10
+        result = Math.round(number * precision) / precision
+    }
+    precision *= 10
+    return Math.round(number * precision) / precision
 }
 
 // Update all the cells visibility and width.
@@ -544,7 +596,7 @@ function update_cells() {
     "use strict";
     var visible_columns_mask = compute_visible_columns_mask();
     var visible_size = compute_visible_size(visible_columns_mask);
-    var graph_width = document.getElementById("width").clientWidth - 10;
+    var graph_width = document.getElementById("width").clientWidth;
     var scale_factor = graph_width / visible_size;
     Object.keys(cells_data).forEach(function (cell_id) {
         update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);

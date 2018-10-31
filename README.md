@@ -14,7 +14,7 @@ Download `flameview.py` and place it in your path. You might need to tweak the
 
 ## STATUS
 
-This is a beta version **0.1-b0**. It provides the basic functionality and seems
+This is a beta version **0.1-b1**. It provides the basic functionality and seems
 to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
 Feedback is welcome.
 
@@ -22,34 +22,37 @@ Feedback is welcome.
 
 The output of ``flameview.py -h`` is:
 
-    usage: flameview.py [-h] [--sortby SORT_KEY] [--inverted] [--title TITLE]
-                        [--countname NAME] [--nodefaultcss] [--addcss CSS]
-                        [--colors PALETTE] [--output HTML] [--version]
+    usage: flameview.py [-h] [--minpercent PERCENT] [--sortby SORT_KEY]
+                        [--inverted] [--title TITLE] [--countname NAME]
+                        [--nodefaultcss] [--addcss CSS] [--colors PALETTE]
+                        [--output HTML] [--version]
                         [FLAMEGRAPH]
 
     Generate a flamegraph view.
 
     positional arguments:
-      FLAMEGRAPH         The flamegraph data file to read; default: "-", read from
-                         standard input
+      FLAMEGRAPH            The flamegraph data file to read; default: "-", read
+                            from standard input
 
     optional arguments:
-      -h, --help         show this help message and exit
-      --sortby SORT_KEY  How to sort nodes: name (default) - lexicographically,
-                         counts - by the counted data
-      --inverted         If specified, generate an inverted (icicles) graph.
-      --title TITLE      An optional title for the HTML document; default: "Flame
-                         Graph" or "Icicle Graph"
-      --countname NAME   The name of the counted data; default: "samples".
-      --nodefaultcss     If specified, the default appearance CSS is omitted,
-                         probably to avoid interfering with --addcss
-      --addcss CSS       The name of a CSS file to embed into the output HTML
-      --colors PALETTE   The color palette to use, subset of flamegraph.pl;
-                         default: "hot", other choices: mem, io, red, green, blue,
-                         aqua, yellow, purple, orange
-      --output HTML      The HTML file to write; default: "-", write to standard
-                         output
-      --version          Print the version information (0.1-b0) and exit
+      -h, --help            show this help message and exit
+      --minpercent PERCENT  The minimal percent of the entries to display;
+                            default: 0.1 (1/1000 of the total)
+      --sortby SORT_KEY     How to sort nodes: name (default) - lexicographically,
+                            counts - by the counted data
+      --inverted            If specified, generate an inverted (icicles) graph.
+      --title TITLE         An optional title for the HTML document; default:
+                            "Flame Graph" or "Icicle Graph"
+      --countname NAME      The name of the counted data; default: "samples".
+      --nodefaultcss        If specified, the default appearance CSS is omitted,
+                            probably to avoid interfering with --addcss
+      --addcss CSS          The name of a CSS file to embed into the output HTML
+      --colors PALETTE      The color palette to use, subset of flamegraph.pl;
+                            default: "hot", other choices: mem, io, red, green,
+                            blue, aqua, yellow, purple, orange
+      --output HTML         The HTML file to write; default: "-", write to
+                            standard output
+      --version             Print the version information (0.1-b1) and exit
 
     INPUT: A flamegraph file. Each line must be in the format:
 
