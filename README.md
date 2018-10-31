@@ -12,6 +12,45 @@ Download `flameview.py` and place it in your path. You might need to tweak the
 `#!` line to execute the correct python interpreter; by default it invokes
 `python3`.
 
+## USAGE
+
+The output of ``flameview.py -h`` is:
+
+    usage: flameview.py [-h] [--sortby SORT_KEY] [--inverted] [--title TITLE]
+                        [--countname NAME] [--nodefaultcss] [--addcss CSS]
+                        [--colors PALETTE] [--output HTML] [--version]
+                        [FLAMEGRAPH]
+
+    Generate a flamegraph view.
+
+    positional arguments:
+      FLAMEGRAPH         The flamegraph data file to read; default: "-", read from
+                         standard input
+
+    optional arguments:
+      -h, --help         show this help message and exit
+      --sortby SORT_KEY  How to sort nodes: name (default) - lexicographically,
+                         counts - by the counted data
+      --inverted         If specified, generate an inverted (icicles) graph.
+      --title TITLE      An optional title for the HTML document; default: "Flame
+                         Graph" or "Icicle Graph"
+      --countname NAME   The name of the counted data; default: "samples".
+      --nodefaultcss     If specified, the default appearance CSS is omitted,
+                         probably to avoid interfering with --addcss
+      --addcss CSS       The name of a CSS file to embed into the output HTML
+      --colors PALETTE   The color palette to use, subset of flamegraph.pl;
+                         default: "hot", other choices: mem, io, red, green, blue,
+                         aqua, yellow, purple, orange
+      --output HTML      The HTML file to write; default: "-", write to standard
+                         output
+      --version          Print the version information and exit
+
+    INPUT: A flamegraph file. Each line must be in the format:
+
+        name;...;name size [difference] [#tooltip_html]
+
+    OUTPUT: An HTML file visualizing the flame graph.
+
 ## DESCRIPTION
 
 `flameview.py` is inspired by the `flamegraph.pl` program, which you can obtain
@@ -28,14 +67,14 @@ The `flameview` program does provide some features that `flamegraph` lacks:
   above the relevant graph cell. This allows attaching arbitrary data to each
   cell. For example, it is possible to display both CPU time (as the
   measurements) and invocations count (in the tooltip), similarly to the output
-  of gprof.
+  of `gprof`.
 
 * The output is an interactive file, using HTML rather than SVG. As a result,
   there is no need to specify the size of the graph in advance. Instead it
   always spans the full width of the browser's window.
 
 * Selecting (clicking on) a cell restricts the view to the subset of the graph
-  rooted in the selected cell. Clicking on the bottom "all" cell views all the
+  rooted in the selected cell. Selecting the bottom "all" cell views all the
   graph.
 
   Control-clicking a cell allows for de/selecting multiple cells. The currently
@@ -56,16 +95,17 @@ The `flameview` program does provide some features that `flamegraph` lacks:
   graph, and the additional tooltip HTML, if any, from the input file.
 
   Hovering over the "all" cell when a subset of the graph is visible will
-  display the percentages of the visible graph out of the total graph.
+  display the percentages of the currently visible (selected) graph out of the
+  total graph.
 
-* Explicit "(self)" cells are created when some call chain both has its own
-  measurements and measurements for further nested call chains. In such a case,
-  the self cell will display the input tooltip and the measurement for the call
-  chain; the lower level cell will display the sum of the self measurement and
-  all the nested invocations.
+* Explicit "(self)" cells are created when some call chain has both its own
+  measurements and also measurements for further nested call chains. In such a
+  case, the self cell will display the input tooltip and the measurement for the
+  call chain; the lower level cell will display the sum of the self measurement
+  and all the nested invocations.
 
 The above allows the result flame graph to provide all the information one would
-get from a gprof output (and more), in a visual form:
+get from a `gprof` output (and more), in a visual form:
 
 * The tooltips may provide the invocations count, or any other data which is
   associated with the call chain.
@@ -77,67 +117,105 @@ get from a gprof output (and more), in a visual form:
 * If "all" is selected, and you control-click to select a function "foo", you
   will see all the invocations of the "foo" function anywhere in the graph, each
   one above its caller chain. This makes it easy to see the both total measure
-  of "foo", what percentage this is of the total, and which percentage is due to
-  which caller.
+  of "foo", what percentage this is of the program's total, and which percentage
+  is due to which caller.
 
 * A further control-click of a higher level "bar" function will show all the
   invocations of "bar" from "foo". This makes it easy to see which percentage of
-  the measurements is due to any "bar" (indirectly) invoked from "foo".
+  the measurements is due to any "bar" invoked from "foo" (directly or
+  indirectly).
 
 * A further control-click to deselect "all" will restrict the view to only the
   calls to "bar" from the specific selected invocation of "foo", again allowing
   to view the total measurement and percentages of such calls.
 
+That is, by selecting multiple cells it is possible to gain valuable additional
+insights about the execution, which are impossible to obtain using the output of
+`flamegraph.pl`, even though the data is present in the graph.
+
 TWEAKING
 --------
 
-The output of `flameview` tries to be well-behaved CSS-annotated HTML,
-with the inevitable embedded javascript code. The file requires no external
+The output of `flameview` tries to be well-behaved CSS-annotated HTML 5 (clean
+according to https://validator.w3.org/), with the inevitable embedded javascript
+code (clean according to https://jslint.com/). The file requires no external
 resources, and contains hopefully helpful comments to help tweaking it.
 
-The output uses a `table` element for laying out the graph, which arguably
-should be replaced by using CSS grid layout; but I had less luck getting CSS
-grid layout to behave well across browsers.
+The HTML uses a `table` element for laying out the graph, which arguably should
+be replaced by using CSS grid layout. I had less luck getting CSS grid layout to
+behave well across browsers, but that might be my lack of CSS skills more than
+an inherent issue.
 
 It should be "easy" to tweak the appearance of the graph by tweaking the CSS.
-The CSS stylesheet is given in two parts. The first part controls the layout,
-which you probably don't want to mess with (unless you want to try switching
-to CSS grid layout).
+The embedded CSS stylesheet is given in two parts. The first part controls the
+layout, which you probably don't want to mess with (unless you want to try
+switching to CSS grid layout).
 
 The second part controls appearance, using the following CSS selectors:
 
 * `#graph`: The table element containing the whole graph.
 
 * `.self`, `.leaf`, `.sum`, `.empty`: Classes for the `td` elements,
-  reflecting the kind of cell.
+  reflecting the kind of cell. Currently the background color of empty cells is
+  set to `ivory`, and simple border/centering rules are applied to the non-empty
+  cells.
 
-  The background color of empty cells is controlled by CSS; the background color
-  of non-empty cells is hard-coded in the `td` element according to the color
-  palette specified when the output is generated. It might arguably make sense
-  to define some color classes instead, and switch palettes using CSS instead.
+  The background color of non-empty cells is hard-coded in the `td` element
+  according to the color palette specified when the output is generated. It
+  might arguably make sense to define some color classes instead, and switch
+  palettes using CSS instead.
 
-* `.selected`: Class for the `td` elements of the currently selected cell(s).
-  Currently this just makes the label font **bold**.
+* `.tooltip`: Class for the `div` contained in each `td` to hold the tooltip.
+  This uses absolute positioning and is only visible when hovering over the
+  `td`. Currently both the visibility control and the positioning of this `div`
+  are hard-wired in the layout CSS.
+* `.size`: Class for an empty `span` inside the tooltip `div`, which is
+  automatically filled with the computed measurement sum and percentage
+  depending on the visible cells. Currently this has no special formatting.
+
+
+* `.name`: Class for a `span` inside the tooltip `div`, which holds the name of
+  the cell. Note the name may be different from the label; specifically, when
+  the label is "(self)", the name is "name;(self)". Currently the CSS just makes
+  the name font *italic*.
 
 * `.label`: Class for the `div` contained in each `td` to hold the label.
   This needs to be a nested `div` to allow for `overflow: hidden`, which
-  is not supported for the `td` itself.
+  is not supported for `td` elements for some obscure reason.
 
-* `.tooltip`: Class for the `div` contained in each `td` to hold the tooltip.
-  This uses absolute positioning and is only visible when hovering over the `td`.
+* `.group_hover`: Class applied to each other `td` that has the same name as
+  the one under the mouse. The `td` directly under the mouse uses the `:hover`
+  selector as usual. Currently both turn the cell(s) background color to
+  `white`, which makes them stand out of the rest of the colored cells.
 
-* `.group_hover`: Class applied to each other `td` that uses the same label as
-  the one under the mouse. The `td` under the mouse uses the `:hover` selector
-  as usual.
+* `.selected`: Class for the `td` elements of the currently selected cell(s).
+  Currently this just makes the label font **bold**. This might be too subtle
+  an effect.
 
-* `.name`: Class for a `span` inside the tooltip `div`, which holds the name
-  of the cell. Note the name may be different from the label; specifically,
-  when the label is "(self)", the name is "name;(self)". Currently the CSS
-  just makes the name font *italic*.
+You can append additional CSS rules into the HTML to tweak the default
+appearance CSS, or omit the default and provide a full replacement CSS
+instead.
 
-* `.size`: Class for an empty `span` inside the tooltip `div`, which is
-  automatically filled with the computed measurement sum and percentage
-  depending on the visible cells.
+FURTHER WORK
+------------
+
+* If HTML is preferable to SVG, then it would make sense to further develop
+  `flameview.py` to become a true replacement for `flamegraph.pl`. This would
+  require re-implementing all the features already present in `flamegraph`. None
+  of the features seem terribly complex, but their total is far from trivial.
+
+  Otherwise, it might make more sense to enhance the SVG output of
+  `flamegraph.pl` to provide for multiple cell selection and explicit "(self)"
+  nodes. This would have to be done in Perl though ;-)
+
+* The default CSS appearance rules could definitely be improved. It is also
+  technically trivial to provide a selection between several built-in
+  `--csstheme` options. Actually designing such options is much more work.
+
+* Using `table` for layout is frowned upon in the CSS community. It might be
+  better to use the new CSS grid layout instead.
+
+Pull requests are welcome.
 
 ## LICENSE
 

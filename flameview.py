@@ -43,7 +43,7 @@ class Node:
         self.label = name
         self.klass = 'sum'
         self.column = 0
-        self.column_span = 0
+        self.columns_span = 0
         self.group: Optional[str] = None
         self.entry: Optional[Entry] = None
         self.nodes: Dict[str, 'Node'] = {}
@@ -73,6 +73,13 @@ def _main() -> None:  # pylint: disable=too-many-locals
     parser.add_argument('--countname', metavar='NAME', default="samples",
                         help='The name of the counted data; default: "samples".')
 
+    parser.add_argument('--nodefaultcss', action='store_true',
+                        help='If specified, the default appearance CSS is omitted, '
+                        'probably to avoid interfering with --addcss')
+
+    parser.add_argument('--addcss', metavar='CSS', action='append',
+                        help='The name of a CSS file to embed into the output HTML')
+
     parser.add_argument('--colors', metavar='PALETTE', default='hot',
                         choices=['hot', 'mem', 'io', 'red', 'green', 'blue',
                                  'aqua', 'yellow', 'purple', 'orange'],
@@ -80,7 +87,7 @@ def _main() -> None:  # pylint: disable=too-many-locals
                              'default: "hot", other choices: '
                              'mem, io, red, green, blue, aqua, yellow, purple, orange')
 
-    parser.add_argument('--output', '-o', metavar='HTML',
+    parser.add_argument('--output', metavar='HTML',
                         help='The HTML file to write; default: "-", write to standard output')
 
     parser.add_argument('--version', action='store_true',
@@ -249,12 +256,12 @@ def _compute_column_sizes(parent: Node, sort_key: Callable[[Node], Any],
         assert parent.entry is None
         for node in sorted(parent.nodes.values(), key=sort_key):
             _compute_column_sizes(node, sort_key, column_sizes)
-            parent.column_span = node.column + node.column_span - parent.column
+            parent.columns_span = node.column + node.columns_span - parent.column
 
     else:
         assert parent.entry is not None
         column_sizes.append(parent.entry.size)
-        parent.column_span = 1
+        parent.columns_span = 1
 
 
 def _compute_tree_rows(root: Node, columns_count: int) -> List[List[Node]]:
@@ -290,7 +297,7 @@ def _add_empty_nodes(row: List[Node], columns_count: int) -> List[Node]:
         if first_uncovered_column < node.column:
             filled_row.append(_empty_node(first_uncovered_column, node.column))
         filled_row.append(node)
-        first_uncovered_column = node.column + node.column_span
+        first_uncovered_column = node.column + node.columns_span
 
     if first_uncovered_column < columns_count:
         filled_row.append(_empty_node(first_uncovered_column, columns_count))
@@ -301,20 +308,20 @@ def _add_empty_nodes(row: List[Node], columns_count: int) -> List[Node]:
 def _empty_node(start_column: int, end_column: int) -> Node:
     node = Node('')
     node.column = start_column
-    node.column_span = end_column - start_column
+    node.columns_span = end_column - start_column
     node.klass = 'empty'
     return node
 
 
 BEFORE_TITLE = """
-<!doctype html!>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 """[1:]
 
 BEFORE_CSS = """
-<style type="text/css">
+<style>
 /*** Layout: ***/
 
 * {
@@ -375,7 +382,6 @@ DEFAULT_APPEARANCE_CSS = """
     border-width: 2px;
     border-style: solid;
     border-radius: 2px;
-    background-color: cyan;
     text-align: center;
 }
 
@@ -400,12 +406,13 @@ td.group_hover {
     border-radius: 6px;
     background-color: white;
     white-space: nowrap;
+    padding: 0.25em 0.5em 0.25em 0.5em;
 }
 """
 
 BEFORE_JAVASCRIPT = """
 </style>
-<script type="text/javascript">
+<script>
 /*jslint browser: true*/
 
 /*** Generated Data: ***/
@@ -678,7 +685,7 @@ window.onload = on_load;
 """[1:]
 
 AFTER_HTML = """
-<div id="width"/>
+<div id="width"></div>
 </body>
 </html>
 """[1:]
@@ -706,7 +713,17 @@ def _print_output_file(file: TextIO, args: Namespace, groups: Dict[str, List[int
     _print_title(file, title)
 
     file.write(BEFORE_CSS)
-    file.write(DEFAULT_APPEARANCE_CSS)
+
+    if not args.nodefaultcss:
+        file.write(DEFAULT_APPEARANCE_CSS)
+    for css_path in args.addcss or []:
+        try:
+            with open(css_path, 'r') as css_file:
+                file.write(css_file.read())
+        except FileNotFoundError:
+            sys.stderr.write('flameview.py: No such file or directory: %s\n' % css_path)
+            sys.exit(1)
+
     file.write(BEFORE_JAVASCRIPT)
 
     _print_groups_data(file, groups)
@@ -766,7 +783,7 @@ def _print_cell_data(file: TextIO, node: Node, columns_count: int, level: int) -
     file.write('"N%s": {\n' % node.index)
     file.write('        "level": %s' % level)
     file.write(',\n        "columns_mask": [%s]'
-               % _columns_mask(node.column, node.column_span, columns_count))
+               % _columns_mask(node.column, node.columns_span, columns_count))
     if node.group:
         file.write(',\n        "group_id": "%s"' % node.group)
     file.write('\n    }')
@@ -806,7 +823,7 @@ def _print_row(file: TextIO, countname: str, palette: str, row: List[Node]) -> N
 
 
 def _print_node(file: TextIO, countname: str, palette: str, node: Node) -> None:
-    file.write('<td id="N%s" class="%s"' % (node.index, node.klass))
+    file.write('<td id="N%s" class="%s" colspan="%s"' % (node.index, node.klass, node.columns_span))
     if node.klass == 'empty':
         file.write('>&nbsp;</td>\n')
         return
@@ -917,7 +934,7 @@ def _orange_color() -> Tuple[float, float, float]:
 
 def _print_tooltip(file: TextIO, countname: str, node: Node) -> None:
     file.write('<div class="tooltip">\n')
-    file.write('<span class="name">%s</span><br/>\n' % node.name)
+    file.write('<span class="name">%s</span><br/>\n' % _escape(node.name))
     file.write('<hr/>\n')
     file.write('%s: <span class="size"></span><br/>\n' % countname)
     if node.entry and node.entry.tooltip_html:
@@ -927,7 +944,11 @@ def _print_tooltip(file: TextIO, countname: str, node: Node) -> None:
 
 
 def _print_label(file: TextIO, node: Node) -> None:
-    file.write('<div class="label">%s</div>\n' % node.label)
+    file.write('<div class="label">%s</div>\n' % _escape(node.label))
+
+
+def _escape(text: str) -> str:
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
 if __name__ == '__main__':
