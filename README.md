@@ -192,14 +192,13 @@ The second part controls appearance, using the following CSS selectors:
   positioning.
 
 * `.self`, `.leaf`, `.sum`: Classes for `div` elements, reflecting the kind of
-  cell. Currently simple border/centering rules are applied to the non-empty
-  cells.
+  cell. Currently simple border/centering rules are applied to all cells.
 
-  The background color of non-empty cells is hard-coded in the `div` element
-  according to the chosen color palette. It might arguably make sense to define
-  some color classes instead, and switch palettes using CSS instead.
+  The background color of cells is hard-coded in the `div` element according to
+  the chosen color palette. It might arguably make sense to define some color
+  classes instead, and switch palettes using CSS instead.
 
-* `.tooltip`: Class for the `div` contained in each `td` to hold the tooltip.
+* `.tooltip`: Class for the `div` contained in each cell to hold the tooltip.
   This uses absolute positioning and is only visible when hovering over the
   cell.
 
@@ -212,9 +211,9 @@ The second part controls appearance, using the following CSS selectors:
   the label is "(self)", the name is "name;(self)". Currently the CSS just makes
   the name font *italic*.
 
-* `.label`: Class for the `div` contained in each non-empty cell to hold the
-  label. Making this a sibling rather than a parent of the tooltip makes it
-  easier to apply CSS rules only to it.
+* `.label`: Class for the `div` contained in each cell to hold the label. Making
+  this a sibling rather than a parent of the tooltip makes it easier to apply
+  CSS rules only to it.
 
 * `.group_hover`: Class applied to each other cell that has the same name as
   the one under the mouse. The cell directly under the mouse uses the `:hover`
