@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Flame Graph</title>
+<style>
+/*** Layout: ***/
+
+* {
+    box-sizing: border-box;
+}
+
+#width, #graph, #row, #height {
+    margin: 0;
+    padding: 0;
+}
+
+.row {
+    position: relative;
+}
+
+.leaf,
+.self,
+.sum {
+    position: absolute;
+}
+
+.label {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+}
+
+/*** Default Appearance: ***/
+
+* {
+    font-family: sans-serif;
+}
+
+.leaf,
+.self,
+.sum {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 4px;
+    border-color: black;
+    text-align: center;
+}
+
+.label:hover,
+.group_hover .label {
+    background-color: white !important;
+}
+
+.name {
+    font-style: italic;
+}
+
+.selected .label {
+    font-weight: bold;
+}
+
+.selected .name {
+    font-weight: bold;
+}
+
+.tooltip {
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 4px;
+    border-color: black;
+    background-color: white;
+    padding: 0.25em 0.5em 0.25em 0.5em;
+}
+
+.leaf:hover .tooltip,
+.self:hover .tooltip,
+.sum:hover .tooltip {
+    visibility: visible;
+    animation: disappear 0s ease-in 3s forwards;
+}
+
+@keyframes disappear {
+    to {
+        visibility: hidden;
+    }
+}
+</style>
+<script>
+/*jslint browser: true*/
+
+/*** Generated Data: ***/
+
+// Data for each cells group:
+//   cell_ids: The ids of the group cells.
+// On load, the following is computed for each group:
+//   columns_mask: A 0/1 mask of all the columns used by the group cells.
+var groups_data = {
+    "_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a": {"cell_ids": ["N34", "N64", "N73"]},
+    "_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b": {"cell_ids": ["N27", "N57"]},
+    "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5": {"cell_ids": ["N31", "N61", "N70"]},
+    "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694": {"cell_ids": ["N32", "N62", "N71"]},
+    "collections::vec::from_elem::h0cb09490c5e14fb9": {"cell_ids": ["N33", "N63", "N72"]},
+    "core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c": {"cell_ids": ["N38", "N75"]},
+    "core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40": {"cell_ids": ["N37", "N65", "N74"]},
+    "page_fault": {"cell_ids": ["N83", "N89", "N92"]},
+    "simplelog::termlog::TermLogger::init::ha7463b1622ff979e": {"cell_ids": ["N17", "N82"]},
+    "term::terminfo::TermInfo::_from_path::h51064971a80093cd": {"cell_ids": ["N30", "N42", "N60", "N69"]},
+    "term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d": {"cell_ids": ["N25", "N55"]},
+    "term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0": {"cell_ids": ["N28", "N58", "N67"]},
+    "term::terminfo::TermInfo::from_name::h721edfed0d4e6840": {"cell_ids": ["N26", "N56"]},
+    "term::terminfo::TermInfo::from_path::hc007f27f9c5301db": {"cell_ids": ["N29", "N41", "N59", "N68"]},
+    "term::terminfo::parser::compiled::parse::h0bfa24a8d6483291": {"cell_ids": ["N43", "N76"]}
+};
+
+// Data for each cell:
+//   level: The stack nesting level.
+//   columns_mask: A 0/1 mask of all the columns used by the cell.
+//   group_id: The group the cell belongs to, if any.
+var cells_data = {
+    "N0": {
+        "level": 0,
+        "columns_mask": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    "N1": {
+        "level": 1,
+        "columns_mask": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    "N2": {
+        "level": 2,
+        "columns_mask": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N4": {
+        "level": 2,
+        "columns_mask": [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N10": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N12": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N13": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N14": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N84": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    },
+    "N86": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+    },
+    "N88": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0]
+    },
+    "N90": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+    },
+    "N91": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+    },
+    "N93": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+    },
+    "N3": {
+        "level": 3,
+        "columns_mask": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N5": {
+        "level": 3,
+        "columns_mask": [0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N11": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N15": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N85": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    },
+    "N87": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+    },
+    "N94": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+    },
+    "N89": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+        "group_id": "page_fault"
+    },
+    "N92": {
+        "level": 3,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+        "group_id": "page_fault"
+    },
+    "N6": {
+        "level": 4,
+        "columns_mask": [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N7": {
+        "level": 4,
+        "columns_mask": [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N16": {
+        "level": 4,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N66": {
+        "level": 4,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N82": {
+        "level": 4,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "simplelog::termlog::TermLogger::init::ha7463b1622ff979e"
+    },
+    "N8": {
+        "level": 5,
+        "columns_mask": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N9": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N17": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "simplelog::termlog::TermLogger::init::ha7463b1622ff979e"
+    },
+    "N40": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N67": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0"
+    },
+    "N83": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "page_fault"
+    },
+    "N18": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N41": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_path::hc007f27f9c5301db"
+    },
+    "N68": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_path::hc007f27f9c5301db"
+    },
+    "N19": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N42": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::_from_path::h51064971a80093cd"
+    },
+    "N69": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::_from_path::h51064971a80093cd"
+    },
+    "N20": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N43": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::parser::compiled::parse::h0bfa24a8d6483291"
+    },
+    "N70": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5"
+    },
+    "N21": {
+        "level": 9,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N44": {
+        "level": 9,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N71": {
+        "level": 9,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694"
+    },
+    "N22": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N45": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N72": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "collections::vec::from_elem::h0cb09490c5e14fb9"
+    },
+    "N23": {
+        "level": 11,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N53": {
+        "level": 11,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N46": {
+        "level": 11,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N73": {
+        "level": 11,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a"
+    },
+    "N24": {
+        "level": 12,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N54": {
+        "level": 12,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N47": {
+        "level": 12,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N74": {
+        "level": 12,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40"
+    },
+    "N25": {
+        "level": 13,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d"
+    },
+    "N55": {
+        "level": 13,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d"
+    },
+    "N48": {
+        "level": 13,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N75": {
+        "level": 13,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c"
+    },
+    "N26": {
+        "level": 14,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_name::h721edfed0d4e6840"
+    },
+    "N56": {
+        "level": 14,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_name::h721edfed0d4e6840"
+    },
+    "N49": {
+        "level": 14,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N27": {
+        "level": 15,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b"
+    },
+    "N51": {
+        "level": 15,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N57": {
+        "level": 15,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b"
+    },
+    "N50": {
+        "level": 15,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N28": {
+        "level": 16,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0"
+    },
+    "N52": {
+        "level": 16,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N58": {
+        "level": 16,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0"
+    },
+    "N29": {
+        "level": 17,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_path::hc007f27f9c5301db"
+    },
+    "N59": {
+        "level": 17,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::from_path::hc007f27f9c5301db"
+    },
+    "N30": {
+        "level": 18,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::_from_path::h51064971a80093cd"
+    },
+    "N60": {
+        "level": 18,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::TermInfo::_from_path::h51064971a80093cd"
+    },
+    "N31": {
+        "level": 19,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5"
+    },
+    "N61": {
+        "level": 19,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5"
+    },
+    "N76": {
+        "level": 19,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "term::terminfo::parser::compiled::parse::h0bfa24a8d6483291"
+    },
+    "N32": {
+        "level": 20,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694"
+    },
+    "N62": {
+        "level": 20,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694"
+    },
+    "N77": {
+        "level": 20,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N33": {
+        "level": 21,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "collections::vec::from_elem::h0cb09490c5e14fb9"
+    },
+    "N63": {
+        "level": 21,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "collections::vec::from_elem::h0cb09490c5e14fb9"
+    },
+    "N78": {
+        "level": 21,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N34": {
+        "level": 22,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a"
+    },
+    "N64": {
+        "level": 22,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a"
+    },
+    "N79": {
+        "level": 22,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N35": {
+        "level": 23,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N36": {
+        "level": 23,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N37": {
+        "level": 23,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40"
+    },
+    "N39": {
+        "level": 23,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N65": {
+        "level": 23,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40"
+    },
+    "N80": {
+        "level": 23,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N38": {
+        "level": 24,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c"
+    },
+    "N81": {
+        "level": 24,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+};
+
+// The size of each leaf/self cell (that is, a column).
+var column_sizes = [1.0, 1.0, 1.0, 2.0, 1.0, 1.0, 1.0, 3.0, 1.0, 2.0, 2.0, 1.0, 3.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0, 6.0, 1.0, 1.0, 1.0, 1.0];
+
+/*** Behavior: ***/
+
+// The total size of everything (for computing percentages).
+// Computed on load.
+var total_size = null;
+
+// The list of currently selected cell ids.
+var selected_cell_ids = [];
+
+// The id of the root cell that covers everything (by convention).
+var root_id = "N0";
+
+// Compute which columns are visible given the current selection.
+function compute_visible_columns_mask() {
+    "use strict";
+    if (selected_cell_ids.length === 1) {
+        var selected_cell_id = selected_cell_ids[0];
+        return cells_data[selected_cell_id].columns_mask;
+    }
+
+    var lowest_cell_id = undefined;
+    var lowest_level = undefined;
+    selected_cell_ids.forEach(function (cell_id) {
+        var cell_level = cells_data[cell_id].level;
+        if (lowest_cell_id === undefined || lowest_level > cell_level) {
+            lowest_cell_id = cell_id;
+            lowest_level = cell_level;
+        }
+    });
+
+    var visible_columns_mask = cells_data[lowest_cell_id].columns_mask.slice();
+    selected_cell_ids.forEach(function (cell_id) {
+        var group_id = cells_data[cell_id].group_id;
+        var columns_mask = (
+            group_id
+            ? groups_data[group_id].columns_mask
+            : cells_data[cell_id].columns_mask
+        );
+        columns_mask.forEach(function (is_column_in_group, column_index) {
+            visible_columns_mask[column_index] *= is_column_in_group;
+        });
+    });
+    return visible_columns_mask;
+}
+
+// Compute the total size of the visible columns.
+function compute_visible_size(visible_columns_mask) {
+    "use strict";
+    var visible_size = 0;
+    column_sizes.forEach(function (column_size, column_index) {
+        visible_size += column_size * visible_columns_mask[column_index];
+    });
+    return visible_size;
+}
+
+// Convert a number to a human-friendly precision.
+//
+// Allow no more than 2 decimal digits after the `.`, unless the number is very
+// small, in which case allow as many as needed so that the first two
+// significant digits are visible.
+function stringify(number) {
+    "use strict";
+    if (number === 0) {
+        return number;
+    }
+    if (number < 0) {
+        return "-" + stringify(-number);
+    }
+    var precision = 1;
+    var result = 0;
+    while (result === 0) {
+        precision *= 10;
+        result = Math.round(number * precision) / precision;
+    }
+    precision *= 10;
+    return Math.round(number * precision) / precision;
+}
+
+// Update the visibility and width of a specific cell.
+function update_cell(visible_columns_mask,
+        scale_factor, visible_size, cell_id) {
+    "use strict";
+    var cell_data = cells_data[cell_id];
+    var cell = document.getElementById(cell_id);
+
+    var cell_offset_is_done = false;
+    var cell_offset = 0;
+    var cell_size = 0;
+    cell_data.columns_mask.forEach(function (is_column_used, column_index) {
+        if (visible_columns_mask[column_index] > 0) {
+            if (is_column_used > 0) {
+                cell_offset_is_done = true;
+                cell_size += column_sizes[column_index];
+            } else if (!cell_offset_is_done) {
+                cell_offset += column_sizes[column_index];
+            }
+        }
+    });
+
+    if (!cell_offset_is_done) {
+        cell.style.display = "none";
+        return;
+    }
+
+    cell.style.display = null;
+    cell.style.left = Math.round(cell_offset * scale_factor) + "px";
+    cell.style.width = Math.round(cell_size * scale_factor) + "px";
+
+    var size = cell.querySelector(".size");
+    if (!size) {
+        return;
+    }
+
+    if (cell_size === total_size) {
+        size.innerText = cell_size;
+        return;
+    }
+
+    if (cell_size === visible_size) {
+        var percentage_of_total = 100 * cell_size / total_size;
+        size.innerHTML =
+                stringify(cell_size)
+                + " = " + stringify(percentage_of_total) + "%<br/>"
+                + "out of: " + stringify(total_size) + " total";
+        return;
+    }
+
+    var percentage_of_visible = 100 * cell_size / visible_size;
+    var suffix = (
+        visible_size === total_size
+        ? " total"
+        : " visible"
+    );
+    size.innerHTML =
+            stringify(cell_size)
+            + " = " + stringify(percentage_of_visible) + "%<br/>"
+            + "out of: " + stringify(visible_size) + suffix;
+}
+
+// Update all the cells visibility and width.
+//
+// Must be done every time the selected cell and/or the display width change.
+function update_cells() {
+    "use strict";
+    var visible_columns_mask = compute_visible_columns_mask();
+    var visible_size = compute_visible_size(visible_columns_mask);
+    var graph_width = document.getElementById("width").clientWidth;
+    var graph = document.getElementById("graph");
+    graph.style.width = graph_width + "px";
+    var scale_factor = (graph_width - 2) / visible_size;
+    Object.keys(cells_data).forEach(function (cell_id) {
+        update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);
+    });
+}
+
+// Cell hover highlights all cells in a group.
+// The cell itself is highlighted using the :hover CSS selector.
+// The other cells in the group are highlighted using the group_hover class.
+
+// Highlight all group cells on entry.
+function on_over(event) {
+    "use strict";
+    var cell = event.currentTarget;
+    var group_id = cells_data[cell.id].group_id;
+    groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
+        if (group_cell_id !== cell.id) {
+            var group_cell = document.getElementById(group_cell_id);
+            group_cell.classList.add("group_hover");
+        }
+    });
+}
+
+// Unhighlight all group cells on exit.
+function on_out(event) {
+    "use strict";
+    var cell = event.currentTarget;
+    var group_id = cells_data[cell.id].group_id;
+    groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
+        if (group_cell_id !== cell.id) {
+            var group_cell = document.getElementById(group_cell_id);
+            group_cell.classList.remove("group_hover");
+        }
+    });
+}
+
+// Select a cell for filtering the visible graph content.
+//
+// A simple click just shows the selected cell columns,
+// a control-click adds/removes selected cells.
+//
+// When multiple cells are selected, the lowest-level one restricts the set of
+// columns, and each additional higher-level cell further restricts the columns
+// to these covered by the group the cell belongs to.
+function on_click(event) {
+    "use strict";
+    var cell = event.currentTarget;
+
+    if (!event.ctrlKey) {
+        selected_cell_ids.forEach(function (cell_id) {
+            document.getElementById(cell_id).classList.remove("selected");
+        });
+        selected_cell_ids = [cell.id];
+        cell.classList.add("selected");
+        update_cells();
+        return;
+    }
+
+    var new_selected_cell_ids = [];
+    selected_cell_ids.forEach(function (cell_id) {
+        if (cell_id !== cell.id) {
+            new_selected_cell_ids.push(cell_id);
+        }
+    });
+
+    if (new_selected_cell_ids.length === selected_cell_ids.length) {
+        selected_cell_ids.push(cell.id);
+        cell.classList.add("selected");
+        update_cells();
+        return;
+    }
+
+    cell.classList.remove("selected");
+    selected_cell_ids = new_selected_cell_ids;
+
+    if (new_selected_cell_ids.length === 0) {
+        selected_cell_ids = [root_id];
+        document.getElementById(root_id).classList.add("selected");
+    }
+
+    update_cells();
+}
+
+// Attach handlers to table cells.
+function register_handlers() {
+    "use strict";
+    Object.keys(cells_data).forEach(function (cell_id) {
+        var cell = document.getElementById(cell_id);
+        cell.onclick = on_click;
+        var cell_data = cells_data[cell_id];
+        if (cell_data.group_id) {
+            cell.onmouseover = on_over;
+            cell.onmouseout = on_out;
+        }
+    });
+}
+
+function compute_groups_columns_masks() {
+    "use strict";
+    Object.keys(groups_data).forEach(function (group_id) {
+        var group_data = groups_data[group_id];
+        group_data.cell_ids.forEach(function (cell_id) {
+            var cell_data = cells_data[cell_id];
+            if (!group_data.columns_mask) {
+                group_data.columns_mask = cell_data.columns_mask.slice();
+            } else {
+                var columns_mask = cell_data.columns_mask;
+                columns_mask.forEach(function (is_column_used, column_index) {
+                    if (is_column_used > 0) {
+                        group_data.columns_mask[column_index] = 1;
+                    }
+                });
+            }
+        });
+    });
+}
+
+function on_load() {
+    "use strict";
+    register_handlers();
+    total_size = compute_visible_size(cells_data[root_id].columns_mask);
+    compute_groups_columns_masks();
+    on_click({
+        "currentTarget": document.getElementById(root_id),
+        "ctrlKey": false
+    });
+}
+
+// On resize, update all the cell widths.
+window.onresize = update_cells;
+
+// Properly initialize everything on load.
+window.onload = on_load;
+</script>
+</head>
+<body>
+<h1 id="title">Flame Graph</h1>
+<div id="graph">
+<div class="row">
+<div id="N38" class="leaf" style="background-color: rgb(248, 147, 20)">
+<div class="tooltip">
+<span class="name">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</div>
+</div>
+<div id="N81" class="leaf" style="background-color: rgb(218, 155, 35)">
+<div class="tooltip">
+<span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::set_len::h32f778ca25724bf1</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::set_len::h32f778ca25724bf1</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N35" class="leaf" style="background-color: rgb(246, 97, 16)">
+<div class="tooltip">
+<span class="name">_$LT$u8$u20$as$u20$core..clone..Clone$GT$::clone::h7bfab8630dda96cf</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$u8$u20$as$u20$core..clone..Clone$GT$::clone::h7bfab8630dda96cf</div>
+</div>
+<div id="N36" class="leaf" style="background-color: rgb(209, 26, 47)">
+<div class="tooltip">
+<span class="name">_$LT$usize$u20$as$u20$core..iter..range..Step$GT$::add_one::h0701a52b56dc0bbb</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$usize$u20$as$u20$core..iter..range..Step$GT$::add_one::h0701a52b56dc0bbb</div>
+</div>
+<div id="N37" class="sum" style="background-color: rgb(250, 118, 7)">
+<div class="tooltip">
+<span class="name">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</div>
+</div>
+<div id="N39" class="leaf" style="background-color: rgb(212, 171, 0)">
+<div class="tooltip">
+<span class="name">core::ptr::write::haabbb39ab969e5ac</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::ptr::write::haabbb39ab969e5ac</div>
+</div>
+<div id="N65" class="leaf" style="background-color: rgb(237, 132, 15)">
+<div class="tooltip">
+<span class="name">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</div>
+</div>
+<div id="N80" class="sum" style="background-color: rgb(236, 51, 52)">
+<div class="tooltip">
+<span class="name">_$</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N34" class="sum" style="background-color: rgb(248, 49, 43)">
+<div class="tooltip">
+<span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</div>
+</div>
+<div id="N64" class="sum" style="background-color: rgb(215, 40, 41)">
+<div class="tooltip">
+<span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</div>
+</div>
+<div id="N79" class="sum" style="background-color: rgb(212, 70, 39)">
+<div class="tooltip">
+<span class="name">_$LT$collections..vec..Vec$LT$T$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$T$GT$$GT$::from_iter::h461e3a924bca1725</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$collections..vec..Vec$LT$T$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$T$GT$$GT$::from_iter::h461e3a924bca1725</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N33" class="sum" style="background-color: rgb(211, 45, 2)">
+<div class="tooltip">
+<span class="name">collections::vec::from_elem::h0cb09490c5e14fb9</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">collections::vec::from_elem::h0cb09490c5e14fb9</div>
+</div>
+<div id="N63" class="sum" style="background-color: rgb(212, 92, 6)">
+<div class="tooltip">
+<span class="name">collections::vec::from_elem::h0cb09490c5e14fb9</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">collections::vec::from_elem::h0cb09490c5e14fb9</div>
+</div>
+<div id="N78" class="sum" style="background-color: rgb(232, 182, 27)">
+<div class="tooltip">
+<span class="name">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::h7ad818accf02e73a</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::h7ad818accf02e73a</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N32" class="sum" style="background-color: rgb(237, 40, 53)">
+<div class="tooltip">
+<span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</div>
+</div>
+<div id="N62" class="sum" style="background-color: rgb(211, 133, 4)">
+<div class="tooltip">
+<span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</div>
+</div>
+<div id="N77" class="sum" style="background-color: rgb(254, 226, 47)">
+<div class="tooltip">
+<span class="name">core::iter::iterator::Iterator::collect::h53b7863e73fadbfc</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::iter::iterator::Iterator::collect::h53b7863e73fadbfc</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N31" class="sum" style="background-color: rgb(235, 212, 44)">
+<div class="tooltip">
+<span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</div>
+</div>
+<div id="N61" class="sum" style="background-color: rgb(251, 112, 48)">
+<div class="tooltip">
+<span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</div>
+</div>
+<div id="N76" class="sum" style="background-color: rgb(246, 86, 20)">
+<div class="tooltip">
+<span class="name">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N30" class="sum" style="background-color: rgb(210, 18, 40)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
+</div>
+<div id="N60" class="sum" style="background-color: rgb(216, 213, 43)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N29" class="sum" style="background-color: rgb(233, 32, 30)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
+</div>
+<div id="N59" class="sum" style="background-color: rgb(216, 194, 17)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N28" class="sum" style="background-color: rgb(208, 86, 4)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
+</div>
+<div id="N52" class="leaf" style="background-color: rgb(226, 113, 40)">
+<div class="tooltip">
+<span class="name">std::path::PathBuf::_push::h766d676eb9b04254</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">std::path::PathBuf::_push::h766d676eb9b04254</div>
+</div>
+<div id="N58" class="sum" style="background-color: rgb(205, 9, 23)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N27" class="sum" style="background-color: rgb(248, 229, 21)">
+<div class="tooltip">
+<span class="name">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</div>
+</div>
+<div id="N51" class="sum" style="background-color: rgb(227, 114, 31)">
+<div class="tooltip">
+<span class="name">term::terminfo::searcher::get_dbpath_for_term::hffa8fd0e9637bc76</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::searcher::get_dbpath_for_term::hffa8fd0e9637bc76</div>
+</div>
+<div id="N57" class="sum" style="background-color: rgb(215, 123, 8)">
+<div class="tooltip">
+<span class="name">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</div>
+</div>
+<div id="N50" class="leaf" style="background-color: rgb(254, 127, 37)">
+<div class="tooltip">
+<span class="name">std::collections::hash::map::search_hashed::hae33740b510f48a0</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">std::collections::hash::map::search_hashed::hae33740b510f48a0</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N26" class="sum" style="background-color: rgb(218, 129, 28)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</div>
+</div>
+<div id="N56" class="sum" style="background-color: rgb(239, 73, 49)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</div>
+</div>
+<div id="N49" class="sum" style="background-color: rgb(208, 169, 2)">
+<div class="tooltip">
+<span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert_hashed_nocheck::h980e74df27f75c7d</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert_hashed_nocheck::h980e74df27f75c7d</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N25" class="sum" style="background-color: rgb(205, 93, 31)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</div>
+</div>
+<div id="N55" class="sum" style="background-color: rgb(221, 25, 50)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</div>
+</div>
+<div id="N48" class="sum" style="background-color: rgb(219, 129, 25)">
+<div class="tooltip">
+<span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert::h111f2759872ecfc7</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert::h111f2759872ecfc7</div>
+</div>
+<div id="N75" class="leaf" style="background-color: rgb(246, 220, 23)">
+<div class="tooltip">
+<span class="name">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N24" class="sum" style="background-color: rgb(247, 140, 44)">
+<div class="tooltip">
+<span class="name">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::hcd1c44cd143417f6</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::hcd1c44cd143417f6</div>
+</div>
+<div id="N54" class="sum" style="background-color: rgb(244, 159, 23)">
+<div class="tooltip">
+<span class="name">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::h52a3a52cf0fd4041</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::h52a3a52cf0fd4041</div>
+</div>
+<div id="N47" class="sum" style="background-color: rgb(217, 86, 29)">
+<div class="tooltip">
+<span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..Extend$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::extend::hdf73438726a85d11</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..Extend$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::extend::hdf73438726a85d11</div>
+</div>
+<div id="N74" class="sum" style="background-color: rgb(215, 150, 35)">
+<div class="tooltip">
+<span class="name">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N23" class="sum" style="background-color: rgb(243, 177, 37)">
+<div class="tooltip">
+<span class="name">term::stderr::h99e770fdfcb59b6c</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::stderr::h99e770fdfcb59b6c</div>
+</div>
+<div id="N53" class="sum" style="background-color: rgb(234, 137, 46)">
+<div class="tooltip">
+<span class="name">term::stdout::hc71a921b9549a869</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::stdout::hc71a921b9549a869</div>
+</div>
+<div id="N46" class="sum" style="background-color: rgb(240, 158, 43)">
+<div class="tooltip">
+<span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::from_iter::h3e3cdf90b15b4d33</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::from_iter::h3e3cdf90b15b4d33</div>
+</div>
+<div id="N73" class="sum" style="background-color: rgb(234, 216, 25)">
+<div class="tooltip">
+<span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N22" class="sum" style="background-color: rgb(248, 7, 51)">
+<div class="tooltip">
+<span class="name">simplelog::termlog::TermLogger::new::h94d15a7bc0cbc21f</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">simplelog::termlog::TermLogger::new::h94d15a7bc0cbc21f</div>
+</div>
+<div id="N45" class="sum" style="background-color: rgb(205, 222, 11)">
+<div class="tooltip">
+<span class="name">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::hfcc04b97f5e4cef8</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::hfcc04b97f5e4cef8</div>
+</div>
+<div id="N72" class="sum" style="background-color: rgb(244, 76, 38)">
+<div class="tooltip">
+<span class="name">collections::vec::from_elem::h0cb09490c5e14fb9</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">collections::vec::from_elem::h0cb09490c5e14fb9</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N21" class="sum" style="background-color: rgb(250, 83, 9)">
+<div class="tooltip">
+<span class="name">simplelog::termlog::TermLogger::init::_$u7b$$u7b$closure$u7d$$u7d$::h347f6695ed91405f</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">simplelog::termlog::TermLogger::init::_$u7b$$u7b$closure$u7d$$u7d$::h347f6695ed91405f</div>
+</div>
+<div id="N44" class="sum" style="background-color: rgb(229, 82, 1)">
+<div class="tooltip">
+<span class="name">core::iter::iterator::Iterator::collect::h3b339c4ccaa2a490</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">core::iter::iterator::Iterator::collect::h3b339c4ccaa2a490</div>
+</div>
+<div id="N71" class="sum" style="background-color: rgb(249, 180, 9)">
+<div class="tooltip">
+<span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N20" class="sum" style="background-color: rgb(232, 144, 15)">
+<div class="tooltip">
+<span class="name">log::set_logger::_$u7b$$u7b$closure$u7d$$u7d$::hcb7821323b596727</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">log::set_logger::_$u7b$$u7b$closure$u7d$$u7d$::hcb7821323b596727</div>
+</div>
+<div id="N43" class="sum" style="background-color: rgb(251, 162, 40)">
+<div class="tooltip">
+<span class="name">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</div>
+</div>
+<div id="N70" class="sum" style="background-color: rgb(239, 194, 19)">
+<div class="tooltip">
+<span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N19" class="sum" style="background-color: rgb(211, 127, 24)">
+<div class="tooltip">
+<span class="name">log::set_logger_raw::h2040ab7e0793ea3f</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">log::set_logger_raw::h2040ab7e0793ea3f</div>
+</div>
+<div id="N42" class="sum" style="background-color: rgb(213, 202, 17)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
+</div>
+<div id="N69" class="sum" style="background-color: rgb(249, 9, 28)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N18" class="sum" style="background-color: rgb(208, 88, 6)">
+<div class="tooltip">
+<span class="name">log::set_logger::hfce3bfc5d262a203</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">log::set_logger::hfce3bfc5d262a203</div>
+</div>
+<div id="N41" class="sum" style="background-color: rgb(233, 3, 13)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
+</div>
+<div id="N68" class="sum" style="background-color: rgb(220, 183, 31)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N8" class="leaf" style="background-color: rgb(221, 76, 47)">
+<div class="tooltip">
+<span class="name">__strcasecmp</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">__strcasecmp</div>
+</div>
+<div id="N9" class="leaf" style="background-color: rgb(235, 205, 7)">
+<div class="tooltip">
+<span class="name">_dl_relocate_object</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_relocate_object</div>
+</div>
+<div id="N17" class="sum" style="background-color: rgb(234, 226, 33)">
+<div class="tooltip">
+<span class="name">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</div>
+</div>
+<div id="N40" class="sum" style="background-color: rgb(240, 126, 41)">
+<div class="tooltip">
+<span class="name">simpleloge::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">simpleloge::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
+</div>
+<div id="N67" class="sum" style="background-color: rgb(246, 2, 39)">
+<div class="tooltip">
+<span class="name">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
+</div>
+<div id="N83" class="leaf" style="background-color: rgb(209, 34, 8)">
+<div class="tooltip">
+<span class="name">page_fault</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">page_fault</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N6" class="leaf" style="background-color: rgb(248, 192, 1)">
+<div class="tooltip">
+<span class="name">_dl_init_paths</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_init_paths</div>
+</div>
+<div id="N7" class="sum" style="background-color: rgb(245, 111, 53)">
+<div class="tooltip">
+<span class="name">dl_main</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">dl_main</div>
+</div>
+<div id="N16" class="sum" style="background-color: rgb(205, 150, 54)">
+<div class="tooltip">
+<span class="name">emulator::main_ret::hc4b7fa9090639ebe</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">emulator::main_ret::hc4b7fa9090639ebe</div>
+</div>
+<div id="N66" class="sum" style="background-color: rgb(220, 182, 33)">
+<div class="tooltip">
+<span class="name">emulator::main_ret::hc4b7fa909nd_then::h47fa4b8545196b9b</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">emulator::main_ret::hc4b7fa909nd_then::h47fa4b8545196b9b</div>
+</div>
+<div id="N82" class="sum" style="background-color: rgb(246, 22, 47)">
+<div class="tooltip">
+<span class="name">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N3" class="leaf" style="background-color: rgb(209, 23, 11)">
+<div class="tooltip">
+<span class="name">_dl_name_match_p</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_name_match_p</div>
+</div>
+<div id="N5" class="sum" style="background-color: rgb(247, 225, 5)">
+<div class="tooltip">
+<span class="name">_dl_sysdep_start</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_sysdep_start</div>
+</div>
+<div id="N11" class="leaf" style="background-color: rgb(236, 14, 6)">
+<div class="tooltip">
+<span class="name">strcmp</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">strcmp</div>
+</div>
+<div id="N15" class="sum" style="background-color: rgb(231, 65, 8)">
+<div class="tooltip">
+<span class="name">emulator::main::hc2aaa9b4591a10c7</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">emulator::main::hc2aaa9b4591a10c7</div>
+</div>
+<div id="N85" class="leaf" style="background-color: rgb(218, 15, 21)">
+<div class="tooltip">
+<span class="name">_dl_load_cache_lookup</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_load_cache_lookup</div>
+</div>
+<div id="N87" class="leaf" style="background-color: rgb(232, 147, 33)">
+<div class="tooltip">
+<span class="name">_dl_start</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_start</div>
+</div>
+<div id="N94" class="self" style="background-color: rgb(212, 164, 2)">
+<div class="tooltip">
+<span class="name">_start;(self)</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">(self)</div>
+</div>
+<div id="N89" class="leaf" style="background-color: rgb(223, 52, 37)">
+<div class="tooltip">
+<span class="name">page_fault</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">page_fault</div>
+</div>
+<div id="N92" class="leaf" style="background-color: rgb(227, 56, 16)">
+<div class="tooltip">
+<span class="name">page_fault</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">page_fault</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N2" class="sum" style="background-color: rgb(231, 202, 18)">
+<div class="tooltip">
+<span class="name">[unknown &lt;2e747262696c0036&gt;]</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">[unknown &lt;2e747262696c0036&gt;]</div>
+</div>
+<div id="N4" class="sum" style="background-color: rgb(231, 46, 17)">
+<div class="tooltip">
+<span class="name">[unknown &lt;40&gt;]</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">[unknown &lt;40&gt;]</div>
+</div>
+<div id="N10" class="sum" style="background-color: rgb(229, 141, 19)">
+<div class="tooltip">
+<span class="name">[unknown &lt;63636762696c0036&gt;]</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">[unknown &lt;63636762696c0036&gt;]</div>
+</div>
+<div id="N12" class="leaf" style="background-color: rgb(243, 185, 7)">
+<div class="tooltip">
+<span class="name">__GI_____strtoull_l_internal</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">__GI_____strtoull_l_internal</div>
+</div>
+<div id="N13" class="leaf" style="background-color: rgb(224, 18, 3)">
+<div class="tooltip">
+<span class="name">__GI___readlink</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">__GI___readlink</div>
+</div>
+<div id="N14" class="sum" style="background-color: rgb(248, 225, 31)">
+<div class="tooltip">
+<span class="name">__rust_maybe_catch_panic</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">__rust_maybe_catch_panic</div>
+</div>
+<div id="N84" class="sum" style="background-color: rgb(253, 3, 52)">
+<div class="tooltip">
+<span class="name">_dl_map_object</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_map_object</div>
+</div>
+<div id="N86" class="sum" style="background-color: rgb(243, 31, 19)">
+<div class="tooltip">
+<span class="name">_dl_start_user</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_dl_start_user</div>
+</div>
+<div id="N88" class="sum" style="background-color: rgb(205, 125, 52)">
+<div class="tooltip">
+<span class="name">_start</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">_start</div>
+</div>
+<div id="N90" class="leaf" style="background-color: rgb(230, 88, 35)">
+<div class="tooltip">
+<span class="name">je_arena_ralloc_no_move</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">je_arena_ralloc_no_move</div>
+</div>
+<div id="N91" class="sum" style="background-color: rgb(235, 33, 12)">
+<div class="tooltip">
+<span class="name">je_arena_tcache_fill_small</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">je_arena_tcache_fill_small</div>
+</div>
+<div id="N93" class="leaf" style="background-color: rgb(242, 15, 25)">
+<div class="tooltip">
+<span class="name">je_tcache_boot</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">je_tcache_boot</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N1" class="sum" style="background-color: rgb(224, 202, 52)">
+<div class="tooltip">
+<span class="name">emulator</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">emulator</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N0" class="sum" style="background-color: rgb(253, 78, 38)">
+<div class="tooltip">
+<span class="name">all</span><br/>
+<hr/>
+samples: <span class="size"></span><br/>
+</div>
+<div class="label">all</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+</div>
+<div id="width"></div>
+</body>
+</html>
