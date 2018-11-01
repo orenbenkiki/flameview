@@ -63,6 +63,19 @@ The output of ``flameview.py -h`` is:
 
     OUTPUT: An HTML file visualizing the flame graph.
 
+## EXAMPLE
+
+The
+[example.fg](https://github.com/orenbenkiki/flameview/blob/master/example.fg)
+was copied from one of the example files in ``flameview.pl``. The generated
+HTML, using the default flags, is in
+[example.html](https://htmlpreview.github.io/?https://github.com/orenbenkiki/flameview/blob/master/example.html).
+If you hover over the ``collections::vec::from_elem::...`` cell, you will see it
+takes 21.62% of the samples. However, you will notice that additional cells are
+highlighted. If you control-click it, you will see the same function is invoked
+in three different call chains. If you hover over the bottom ``all`` cell you
+will see that its total cost is actually 32.43%.
+
 ## DESCRIPTION
 
 `flameview.py` is inspired by the `flamegraph.pl` program, which you can obtain
