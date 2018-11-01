@@ -4,6 +4,7 @@
 Generate a flame graph view.
 """
 
+import re
 import sys
 from argparse import ArgumentParser
 from argparse import Namespace
@@ -93,6 +94,9 @@ def _main() -> None:  # pylint: disable=too-many-locals
                              'default: "hot", other choices: '
                              'mem, io, red, green, blue, aqua, yellow, purple, orange')
 
+    parser.add_argument('--strict', action='store_true',
+                        help='If specified, abort with an error on invalid input lines.')
+
     parser.add_argument('--output', metavar='HTML',
                         help='The HTML file to write; default: "-", write to standard output')
 
@@ -109,7 +113,7 @@ def _main() -> None:  # pylint: disable=too-many-locals
         print('flameview.py: version %s' % VERSION)
         sys.exit(0)
 
-    root = _load_input_data(args.input)
+    root = _load_input_data(args.input, args.strict)
     _add_self_nodes(root)
     _compute_sizes(root)
     _prune_small_nodes(root, args.minpercent)
@@ -118,45 +122,61 @@ def _main() -> None:  # pylint: disable=too-many-locals
 
     column_sizes = \
         _compute_tree_column_sizes(root, {'name': _by_name, 'counts': _by_size}[args.sortby])
-    rows = _compute_tree_rows(root, len(column_sizes))
+    rows = _compute_tree_rows(root)
 
     _print_output_data(args, groups, column_sizes, rows)
 
 
-def _load_input_data(path: Optional[str]) -> Node:
+def _load_input_data(path: Optional[str], is_strict: bool) -> Node:
     if path is None or path == '-':
-        return _load_data_file('stdin', sys.stdin)
+        return _load_data_file('stdin', is_strict, sys.stdin)
     with open(path, 'r') as file:
-        return _load_data_file(path, file)
+        return _load_data_file(path, is_strict, file)
 
 
-def _load_data_file(path: str, file: TextIO) -> Node:
+def _load_data_file(path: str, is_strict: bool, file: TextIO) -> Node:
+    line_regexp = re.compile(r'''
+        \A
+        (.*?)
+        (?:
+            (?:
+                \s+
+                ([1-9]\d*)
+                (?:
+                    \s+
+                    (\d+)
+                )?
+            )
+            (?:
+                \s+
+                [#]
+                \s*
+                (.*?)
+            )?
+            \s*
+        )?
+        \Z
+    ''', re.X)
     root = Node('all')
+    ignored = 0
     for line_number, line_text in enumerate(file.readlines()):
         line_number += 1
-        fields = line_text.split()
-        if len(fields) < 2:
-            raise RuntimeError('%s:%s: invalid line' % (path, line_number))
-        names = fields[0].split(';')
-        try:
-            size = float(fields[1])
-        except ValueError:
-            raise RuntimeError('%s:%s: invalid count: %s' % (path, line_number, fields[1]))
+        match = line_regexp.fullmatch(line_text)
+        if not match:
+            if is_strict:
+                sys.stderr.write('flameview.py: %s:%s: error: invalid line\n' % (path, line_number))
+            ignored += 1
+            continue
+        name, count, _difference, tooltip_html = match.group(1, 2, 3, 4)
+        names = name.split(';')
+        size = float(count or 1)
+        tooltip_html = tooltip_html or ''
+        _add_node(names, root, Entry(size, tooltip_html))
 
-        remainder = fields[2:]
-        if remainder:
-            try:
-                float(remainder[0])
-                remainder = remainder[1:]
-            except ValueError:
-                pass
-
-        tooltip_html = ' '.join(remainder)
-        if tooltip_html and tooltip_html[0] != '#':
-            raise RuntimeError('%s:%s: invalid tooltip html: %s'
-                               % (path, line_number, tooltip_html))
-
-        _add_node(names, root, Entry(size, tooltip_html[1:]))
+    if ignored > 0:
+        if is_strict:
+            sys.exit(1)
+        sys.stderr.write('flameview.py: %s: warning: ignored %s invalid lines\n' % (path, ignored))
 
     return root
 
@@ -300,7 +320,7 @@ def _compute_column_sizes(parent: Node, sort_key: Callable[[Node], Any],
         parent.columns_span = 1
 
 
-def _compute_tree_rows(root: Node, columns_count: int) -> List[List[Node]]:
+def _compute_tree_rows(root: Node) -> List[List[Node]]:
     rows: List[List[Node]] = []
     _collect_unsorted_rows(root, rows, 0)
     _sort_rows(rows)

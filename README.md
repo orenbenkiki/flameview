@@ -26,7 +26,7 @@ The output of ``flameview.py -h`` is:
     usage: flameview.py [-h] [--minpercent PERCENT] [--sortby SORT_KEY]
                         [--inverted] [--title TITLE] [--countname NAME]
                         [--nodefaultcss] [--addcss CSS] [--colors PALETTE]
-                        [--output HTML] [--version]
+                        [--strict] [--output HTML] [--version]
                         [FLAMEGRAPH]
 
     Generate a flamegraph view.
@@ -51,9 +51,11 @@ The output of ``flameview.py -h`` is:
       --colors PALETTE      The color palette to use, subset of flamegraph.pl;
                             default: "hot", other choices: mem, io, red, green,
                             blue, aqua, yellow, purple, orange
+      --strict              If specified, abort with an error on invalid input
+                            lines.
       --output HTML         The HTML file to write; default: "-", write to
                             standard output
-      --version             Print the version information (0.1-b1) and exit
+      --version             Print the version information (0.1-b2) and exit
 
     INPUT: A flamegraph file. Each line must be in the format:
 
