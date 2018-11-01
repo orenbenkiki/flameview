@@ -19,7 +19,7 @@ from typing import TextIO
 from typing import Tuple
 
 
-VERSION = "0.1-b1"
+VERSION = "0.1-b2"
 
 
 # pylint: disable=too-many-lines
@@ -304,7 +304,7 @@ def _compute_tree_rows(root: Node, columns_count: int) -> List[List[Node]]:
     rows: List[List[Node]] = []
     _collect_unsorted_rows(root, rows, 0)
     _sort_rows(rows)
-    return [_add_empty_nodes(row, columns_count) for row in rows]
+    return rows
 
 
 def _collect_unsorted_rows(parent: Node, rows: List[List[Node]], level: int) -> None:
@@ -323,30 +323,6 @@ def _sort_rows(rows: List[List[Node]]) -> None:
 
 def _by_column(node: Node) -> int:
     return node.column
-
-
-def _add_empty_nodes(row: List[Node], columns_count: int) -> List[Node]:
-    filled_row: List[Node] = []
-    first_uncovered_column = 0
-
-    for node in row:
-        if first_uncovered_column < node.column:
-            filled_row.append(_empty_node(first_uncovered_column, node.column))
-        filled_row.append(node)
-        first_uncovered_column = node.column + node.columns_span
-
-    if first_uncovered_column < columns_count:
-        filled_row.append(_empty_node(first_uncovered_column, columns_count))
-
-    return filled_row
-
-
-def _empty_node(start_column: int, end_column: int) -> Node:
-    node = Node('')
-    node.column = start_column
-    node.columns_span = end_column - start_column
-    node.klass = 'empty'
-    return node
 
 
 BEFORE_TITLE = """
@@ -373,7 +349,6 @@ BEFORE_CSS = """
     position: relative;
 }
 
-.empty,
 .leaf,
 .self,
 .sum {
@@ -696,13 +671,11 @@ function register_handlers() {
     "use strict";
     Object.keys(cells_data).forEach(function (cell_id) {
         var cell = document.getElementById(cell_id);
-        if (!cell.classList.contains("empty")) {
-            cell.onclick = on_click;
-            var cell_data = cells_data[cell_id];
-            if (cell_data.group_id) {
-                cell.onmouseover = on_over;
-                cell.onmouseout = on_out;
-            }
+        cell.onclick = on_click;
+        var cell_data = cells_data[cell_id];
+        if (cell_data.group_id) {
+            cell.onmouseover = on_over;
+            cell.onmouseout = on_out;
         }
     });
 }
@@ -889,9 +862,6 @@ def _print_row(file: TextIO, countname: str, palette: str, row: List[Node]) -> N
 
 def _print_node(file: TextIO, countname: str, palette: str, node: Node) -> None:
     file.write('<div id="N%s" class="%s"' % (node.index, node.klass))
-    if node.klass == 'empty':
-        file.write('>&nbsp;</div>\n')
-        return
     file.write(' style="background-color: %s">\n' % _node_color(node, palette))
     _print_tooltip(file, countname, node)
     _print_label(file, node)

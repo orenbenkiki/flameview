@@ -15,7 +15,7 @@ correct python interpreter; by default it invokes `python3`.
 
 ## STATUS
 
-This is a beta version **0.1-b1**. It provides the basic functionality and seems
+This is a beta version **0.1-b2**. It provides the basic functionality and seems
 to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
 Feedback is welcome.
 
@@ -176,9 +176,9 @@ The second part controls appearance, using the following CSS selectors:
   actual row cells do not affect the height because they use absolute
   positioning.
 
-* `.self`, `.leaf`, `.sum`, `.empty`: Classes for `div` elements,
-  reflecting the kind of cell. Currently simple border/centering rules are
-  applied to the non-empty cells.
+* `.self`, `.leaf`, `.sum`: Classes for `div` elements, reflecting the kind of
+  cell. Currently simple border/centering rules are applied to the non-empty
+  cells.
 
   The background color of non-empty cells is hard-coded in the `div` element
   according to the chosen color palette. It might arguably make sense to define
