@@ -98,8 +98,7 @@ The `flameview` program does provide some features that `flamegraph` lacks:
   string. This string will be placed in the tooltip displayed when hovering
   above the relevant graph cell. This allows attaching arbitrary data to each
   cell. For example, it is possible to display both CPU time (as the sizes) and
-  invocations count (in the tooltip), similarly to the output of `gprof`. Since
-  tooltips are intrusive alt-clicking on a tooltip or a cell toggles them.
+  invocations count (in the tooltip), similarly to the output of `gprof`.
 
 * Size data may be float rather than only integer. This allows, for example,
   to directly use wall clock time, in seconds, as the size measure.
@@ -127,11 +126,12 @@ The `flameview` program does provide some features that `flamegraph` lacks:
 
   Hovering over any cell will display a tooltip containing its name, its size,
   the percentage of this size out of the total and visible graph, and the
-  additional tooltip HTML, if any, from the input file.
+  additional tooltip HTML, if any, from the input file. Since tooltips are
+  intrusive alt-clicking on a tooltip or a cell toggles them.
 
   Hovering over the "all" cell when a subset of the graph is visible will
-  display the percentages of the currently visible (selected) graph out of the
-  total graph.
+  display a tooltip with the percentages of the currently visible (selected)
+  graph out of the total graph.
 
 * Explicit "(self)" cells are created when some call chain has both its own
   size and also sizes for further nested call chains. In such a case, the self
@@ -221,7 +221,7 @@ The second part controls appearance, using the following CSS selectors:
   the name font *italic*.
 
 * `.basic`: Class for a `div` inside the tooltip, which holds the basic computed
-* data about the cell. Currently this has no special formatting.
+  data about the cell. Currently this has no special formatting.
 
 * `.computed`: Class for an empty `span` inside the basic `div`, which is
   automatically filled with the computed size sum and percentage depending on
