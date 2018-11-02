@@ -15,9 +15,27 @@ correct python interpreter; by default it invokes `python3`.
 
 ## STATUS
 
-This is a beta version **0.1-b2**. It provides the basic functionality and seems
+This is a beta version **0.1-b3**. It provides the basic functionality and seems
 to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
 Feedback is welcome.
+
+## EXAMPLE
+
+The
+[example.fg](https://github.com/orenbenkiki/flameview/blob/master/example.fg)
+was copied from one of the example files in ``flameview.pl``. The generated HTML
+(using the command line `flameview.py example.fg > example.html`), is in
+[example.html](https://htmlpreview.github.io/?https://github.com/orenbenkiki/flameview/blob/master/example.html).
+This example contains 21 invalid lines (lacking a count field) which are ignored
+with a warning.
+
+Hover over any cell to view its data in a tooltip. Alt-click to toggle the
+tooltips. If you hover over the ``collections::vec::from_elem::...`` cell, you
+will see it takes 21.62% of the samples. You will notice that additional cells
+are highlighted. If you control-click any of them, you will see the same
+function is invoked in three different call chains. Hover over the bottom "all"
+cell to see these take 32.43% of the total samples. Click the bottom "all"
+cell to return to viewing the full graph.
 
 ## USAGE
 
@@ -63,19 +81,6 @@ The output of ``flameview.py -h`` is:
 
     OUTPUT: An HTML file visualizing the flame graph.
 
-## EXAMPLE
-
-The
-[example.fg](https://github.com/orenbenkiki/flameview/blob/master/example.fg)
-was copied from one of the example files in ``flameview.pl``. The generated
-HTML, using the default flags, is in
-[example.html](https://htmlpreview.github.io/?https://github.com/orenbenkiki/flameview/blob/master/example.html).
-If you hover over the ``collections::vec::from_elem::...`` cell, you will see it
-takes 21.62% of the samples. However, you will notice that additional cells are
-highlighted. If you control-click it, you will see the same function is invoked
-in three different call chains. If you hover over the bottom ``all`` cell you
-will see that its total cost is actually 32.43%.
-
 ## DESCRIPTION
 
 `flameview.py` is inspired by the `flamegraph.pl` program, which you can obtain
@@ -92,7 +97,8 @@ The `flameview` program does provide some features that `flamegraph` lacks:
   above the relevant graph cell. This allows attaching arbitrary data to each
   cell. For example, it is possible to display both CPU time (as the
   measurements) and invocations count (in the tooltip), similarly to the output
-  of `gprof`.
+  of `gprof`. Since tooltips are intrusive, clicking on one disables them.
+  Alt-clicking a cell re-enables them.
 
 * The output is an interactive file, using HTML rather than SVG. As a result,
   there is no need to specify the size of the graph in advance. Instead it
@@ -163,8 +169,9 @@ TWEAKING
 
 The output of `flameview` tries to be well-behaved CSS-annotated HTML 5 (clean
 according to https://validator.w3.org/), with the inevitable embedded javascript
-code (clean according to https://jslint.com/). The file requires no external
-resources, and contains hopefully helpful comments to help tweaking it.
+code (clean according to https://jslint.com/ except for containing long
+generated data lines). The file requires no external resources, and contains
+hopefully helpful comments to help tweaking it.
 
 The HTML uses absolute positioning to control the horizontal location of the cells,
 and lets HTML automatically determine the height of each row (one "normal"
@@ -179,6 +186,10 @@ switching to CSS grid layout).
 The second part controls appearance, using the following CSS selectors:
 
 * `#graph`: The `div` containing the whole graph.
+
+* `.tooltipped`: Class applied to `graph` when tooltips are enabled. This gets
+  removed when clicking on any tooltip, disabling tooltips. It is restored when
+  alt-clicking on any cell, re-enabling the tooltips.
 
 * `#width`: An empty `div` following the graph, used to detect the available
   vertical space. If you force its width, the graph will adjust accordingly.
@@ -215,10 +226,9 @@ The second part controls appearance, using the following CSS selectors:
   this a sibling rather than a parent of the tooltip makes it easier to apply
   CSS rules only to it.
 
-* `.group_hover`: Class applied to each other cell that has the same name as
-  the one under the mouse. The cell directly under the mouse uses the `:hover`
-  selector as usual. Currently both turn the cell(s) background color to
-  `white`, which makes them stand out of the rest of the colored cells.
+* `.group_hover`: Class applied to each cell that has the same name as the one
+  under the mouse. Currently this turns the cell(s) background color to `ivory`,
+  which makes them stand out of the rest of the colored cells.
 
 * `.selected`: Class for the currently selected cell(s). Currently this just
   makes the label font **bold**. This might be too subtle an effect.

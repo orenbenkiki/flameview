@@ -20,7 +20,7 @@ from typing import TextIO
 from typing import Tuple
 
 
-VERSION = "0.1-b2"
+VERSION = "0.1-b3"
 
 
 # pylint: disable=too-many-lines
@@ -404,9 +404,8 @@ DEFAULT_APPEARANCE_CSS = """
     text-align: center;
 }
 
-.label:hover,
 .group_hover .label {
-    background-color: white !important;
+    background-color: ivory !important;
 }
 
 .name {
@@ -426,21 +425,15 @@ DEFAULT_APPEARANCE_CSS = """
     border-width: 2px;
     border-radius: 4px;
     border-color: black;
-    background-color: white;
+    background-color: ivory;
     padding: 0.25em 0.5em 0.25em 0.5em;
+    text-align: left;
 }
 
-.leaf:hover .tooltip,
-.self:hover .tooltip,
-.sum:hover .tooltip {
+.tooltipped .leaf:hover .tooltip,
+.tooltipped .self:hover .tooltip,
+.tooltipped .sum:hover .tooltip {
     visibility: visible;
-    animation: disappear 0s ease-in 3s forwards;
-}
-
-@keyframes disappear {
-    to {
-        visibility: hidden;
-    }
 }
 """
 
@@ -559,8 +552,10 @@ function update_cell(visible_columns_mask,
     }
 
     cell.style.display = null;
-    cell.style.left = Math.round(cell_offset * scale_factor) + "px";
-    cell.style.width = Math.round(cell_size * scale_factor) + "px";
+    var left = Math.round(cell_offset * scale_factor);
+    cell.style.left = left + "px";
+    var width = Math.round((cell_offset + cell_size) * scale_factor) - left;
+    cell.style.width = width + "px";
 
     var size = cell.querySelector(".size");
     if (!size) {
@@ -572,25 +567,18 @@ function update_cell(visible_columns_mask,
         return;
     }
 
-    if (cell_size === visible_size) {
-        var percentage_of_total = 100 * cell_size / total_size;
-        size.innerHTML =
-                stringify(cell_size)
-                + " = " + stringify(percentage_of_total) + "%<br/>"
-                + "out of: " + stringify(total_size) + " total";
-        return;
+    var size_text = cell_size;
+    if (visible_size !== total_size && cell_size !== visible_size) {
+        var percentage_of_visible = 100 * cell_size / visible_size;
+        size_text += "<br/>" + stringify(percentage_of_visible) +
+                "% out of: " + stringify(visible_size) + " visible";
     }
 
-    var percentage_of_visible = 100 * cell_size / visible_size;
-    var suffix = (
-        visible_size === total_size
-        ? " total"
-        : " visible"
-    );
-    size.innerHTML =
-            stringify(cell_size)
-            + " = " + stringify(percentage_of_visible) + "%<br/>"
-            + "out of: " + stringify(visible_size) + suffix;
+    var percentage_of_total = 100 * cell_size / total_size;
+    size_text += "<br/>" + stringify(percentage_of_total) +
+            "% out of: " + stringify(total_size) + " total";
+
+    size.innerHTML = size_text;
 }
 
 // Update all the cells visibility and width.
@@ -618,12 +606,14 @@ function on_over(event) {
     "use strict";
     var cell = event.currentTarget;
     var group_id = cells_data[cell.id].group_id;
-    groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
-        if (group_cell_id !== cell.id) {
+    if (group_id) {
+        groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
             var group_cell = document.getElementById(group_cell_id);
             group_cell.classList.add("group_hover");
-        }
-    });
+        });
+    } else {
+        cell.classList.add("group_hover");
+    }
 }
 
 // Unhighlight all group cells on exit.
@@ -631,18 +621,21 @@ function on_out(event) {
     "use strict";
     var cell = event.currentTarget;
     var group_id = cells_data[cell.id].group_id;
-    groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
-        if (group_cell_id !== cell.id) {
+    if (group_id) {
+        groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
             var group_cell = document.getElementById(group_cell_id);
             group_cell.classList.remove("group_hover");
-        }
-    });
+        });
+    } else {
+        cell.classList.remove("group_hover");
+    }
 }
 
 // Select a cell for filtering the visible graph content.
 //
 // A simple click just shows the selected cell columns,
-// a control-click adds/removes selected cells.
+// a control-click adds/removes selected cells,
+// an alt-click toggles tooltips.
 //
 // When multiple cells are selected, the lowest-level one restricts the set of
 // columns, and each additional higher-level cell further restricts the columns
@@ -650,6 +643,11 @@ function on_out(event) {
 function on_click(event) {
     "use strict";
     var cell = event.currentTarget;
+
+    if (event.altKey) {
+        document.getElementById("graph").classList.add("tooltipped");
+        return;
+    }
 
     if (!event.ctrlKey) {
         selected_cell_ids.forEach(function (cell_id) {
@@ -686,16 +684,24 @@ function on_click(event) {
     update_cells();
 }
 
+// Disable tooltips.
+function disable_tooltip(event) {
+    "use strict";
+    document.getElementById("graph").classList.remove("tooltipped");
+    event.stopPropagation();
+}
+
 // Attach handlers to table cells.
 function register_handlers() {
     "use strict";
     Object.keys(cells_data).forEach(function (cell_id) {
         var cell = document.getElementById(cell_id);
         cell.onclick = on_click;
-        var cell_data = cells_data[cell_id];
-        if (cell_data.group_id) {
-            cell.onmouseover = on_over;
-            cell.onmouseout = on_out;
+        cell.onmouseover = on_over;
+        cell.onmouseout = on_out;
+        var tooltip = cell.querySelector(".tooltip");
+        if (tooltip) {
+            tooltip.onclick = disable_tooltip;
         }
     });
 }
@@ -866,7 +872,7 @@ def _print_h1(file: TextIO, title: str) -> None:
 
 
 def _print_table(file: TextIO, countname: str, palette: str, rows: List[List[Node]]) -> None:
-    file.write('<div id="graph">\n')
+    file.write('<div id="graph" class="tooltipped">\n')
     for row in rows:
         _print_row(file, countname, palette, row)
     file.write('</div>\n')
@@ -991,10 +997,11 @@ def _print_tooltip(file: TextIO, countname: str, node: Node) -> None:
     file.write('<div class="tooltip">\n')
     file.write('<span class="name">%s</span><br/>\n' % _escape(node.name))
     file.write('<hr/>\n')
-    file.write('%s: <span class="size"></span><br/>\n' % countname)
+    file.write('<div class="computed">%s: <span class="size"></span></div>\n' % countname)
     if node.entry and node.entry.tooltip_html:
+        file.write('<div class="extra">\n')
         file.write(node.entry.tooltip_html)
-        file.write('\n')
+        file.write('</div>\n')
     file.write('</div>\n')
 
 
