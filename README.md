@@ -15,7 +15,7 @@ correct python interpreter; by default it invokes `python3`.
 
 ## STATUS
 
-This is a beta version **0.1-b3**. It provides the basic functionality and seems
+This is a beta version **0.1-b4**. It provides the basic functionality and seems
 to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
 Feedback is welcome.
 
@@ -42,9 +42,9 @@ cell to return to viewing the full graph.
 The output of ``flameview.py -h`` is:
 
     usage: flameview.py [-h] [--minpercent PERCENT] [--sortby SORT_KEY]
-                        [--inverted] [--title TITLE] [--countname NAME]
+                        [--inverted] [--title TITLE] [--sizename NAME]
                         [--nodefaultcss] [--addcss CSS] [--colors PALETTE]
-                        [--strict] [--output HTML] [--version]
+                        [--seed SEED] [--strict] [--output HTML] [--version]
                         [FLAMEGRAPH]
 
     Generate a flamegraph view.
@@ -58,22 +58,24 @@ The output of ``flameview.py -h`` is:
       --minpercent PERCENT  The minimal percent of the entries to display;
                             default: 0.1 (1/1000 of the total)
       --sortby SORT_KEY     How to sort nodes: name (default) - lexicographically,
-                            counts - by the counted data
+                            size - by the size data
       --inverted            If specified, generate an inverted (icicles) graph.
       --title TITLE         An optional title for the HTML document; default:
                             "Flame Graph" or "Icicle Graph"
-      --countname NAME      The name of the counted data; default: "samples".
+      --sizename NAME       The name of the size data; default: "samples".
       --nodefaultcss        If specified, the default appearance CSS is omitted,
                             probably to avoid interfering with --addcss
       --addcss CSS          The name of a CSS file to embed into the output HTML
       --colors PALETTE      The color palette to use, subset of flamegraph.pl;
                             default: "hot", other choices: mem, io, red, green,
                             blue, aqua, yellow, purple, orange
+      --seed SEED           An optional seed for repeatable random color
+                            generation; default: None
       --strict              If specified, abort with an error on invalid input
                             lines.
       --output HTML         The HTML file to write; default: "-", write to
                             standard output
-      --version             Print the version information (0.1-b2) and exit
+      --version             Print the version information (0.1-b4) and exit
 
     INPUT: A flamegraph file. Each line must be in the format:
 
@@ -95,10 +97,12 @@ The `flameview` program does provide some features that `flamegraph` lacks:
 * Each input line may end with a `#` character followed by an arbitrary HTML
   string. This string will be placed in the tooltip displayed when hovering
   above the relevant graph cell. This allows attaching arbitrary data to each
-  cell. For example, it is possible to display both CPU time (as the
-  measurements) and invocations count (in the tooltip), similarly to the output
-  of `gprof`. Since tooltips are intrusive, clicking on one disables them.
-  Alt-clicking a cell re-enables them.
+  cell. For example, it is possible to display both CPU time (as the sizes) and
+  invocations count (in the tooltip), similarly to the output of `gprof`. Since
+  tooltips are intrusive alt-clicking on a tooltip or a cell toggles them.
+
+* Size data may be float rather than only integer. This allows, for example,
+  to directly use wall clock time, in seconds, as the size measure.
 
 * The output is an interactive file, using HTML rather than SVG. As a result,
   there is no need to specify the size of the graph in advance. Instead it
@@ -121,19 +125,19 @@ The `flameview` program does provide some features that `flamegraph` lacks:
   are the cells that will remain visible if you add the cell to the selection
   using control-click.
 
-  Hovering over any cell will display (for a few seconds) a tooltip containing
-  its name, its measurement, the percentage of this measurement out of the total
-  visible graph, and the additional tooltip HTML, if any, from the input file.
+  Hovering over any cell will display a tooltip containing its name, its size,
+  the percentage of this size out of the total and visible graph, and the
+  additional tooltip HTML, if any, from the input file.
 
   Hovering over the "all" cell when a subset of the graph is visible will
   display the percentages of the currently visible (selected) graph out of the
   total graph.
 
 * Explicit "(self)" cells are created when some call chain has both its own
-  measurements and also measurements for further nested call chains. In such a
-  case, the self cell will display the input tooltip and the measurement for the
-  call chain; the lower level cell will display the sum of the self measurement
-  and all the nested invocations.
+  size and also sizes for further nested call chains. In such a case, the self
+  cell will display the input tooltip and the sizes for the call chain; the
+  lower level cell will display the sum of the self size and all the nested
+  invocations.
 
 The above allows the result flame graph to provide all the information one would
 get from a `gprof` output (and more), in a visual form:
@@ -141,9 +145,8 @@ get from a `gprof` output (and more), in a visual form:
 * The tooltips may provide the invocations count, or any other data which is
   associated with the call chain.
 
-* Self nodes allow viewing the measurements of the function itself, as opposed
-  to the sum of the function and everything it invokes (which is also
-  available).
+* Self nodes allow viewing the sizes of the function itself, as opposed to the
+  sum of the function and everything it invokes (which is also available).
 
 * If "all" is selected, and you control-click to select a function "foo", you
   will see all the invocations of the "foo" function anywhere in the graph, each
@@ -153,12 +156,11 @@ get from a `gprof` output (and more), in a visual form:
 
 * A further control-click of a higher level "bar" function will show all the
   invocations of "bar" from "foo". This makes it easy to see which percentage of
-  the measurements is due to any "bar" invoked from "foo" (directly or
-  indirectly).
+  the sizes is due to any "bar" invoked from "foo" (directly or indirectly).
 
 * A further control-click to deselect "all" will restrict the view to only the
   calls to "bar" from the specific selected invocation of "foo", again allowing
-  to view the total measurement and percentages of such calls.
+  to view the total size and percentages of such calls.
 
 That is, by selecting multiple cells it is possible to gain valuable additional
 insights about the execution, which are impossible to obtain using the output of
@@ -188,8 +190,8 @@ The second part controls appearance, using the following CSS selectors:
 * `#graph`: The `div` containing the whole graph.
 
 * `.tooltipped`: Class applied to `graph` when tooltips are enabled. This gets
-  removed when clicking on any tooltip, disabling tooltips. It is restored when
-  alt-clicking on any cell, re-enabling the tooltips.
+  removed when alt-clicking on any tooltip, disabling tooltips. It is restored
+  when alt-clicking on any cell, re-enabling the tooltips.
 
 * `#width`: An empty `div` following the graph, used to detect the available
   vertical space. If you force its width, the graph will adjust accordingly.
@@ -211,16 +213,22 @@ The second part controls appearance, using the following CSS selectors:
 
 * `.tooltip`: Class for the `div` contained in each cell to hold the tooltip.
   This uses absolute positioning and is only visible when hovering over the
-  cell.
-
-* `.size`: Class for an empty `span` inside the tooltip `div`, which is
-  automatically filled with the computed measurement sum and percentage
-  depending on the visible cells. Currently this has no special formatting.
+  cell, and tooltips are enabled.
 
 * `.name`: Class for a `span` inside the tooltip `div`, which holds the name of
   the cell. Note the name may be different from the label; specifically, when
   the label is "(self)", the name is "name;(self)". Currently the CSS just makes
   the name font *italic*.
+
+* `.basic`: Class for a `div` inside the tooltip, which holds the basic computed
+* data about the cell. Currently this has no special formatting.
+
+* `.computed`: Class for an empty `span` inside the basic `div`, which is
+  automatically filled with the computed size sum and percentage depending on
+  the visible cells. Currently this has no special formatting.
+
+* `.extra`: Class for a `div` inside the tooltip, which holds the extra tooltip
+  HTML from the input file. Currently this has no special formatting.
 
 * `.label`: Class for the `div` contained in each cell to hold the label. Making
   this a sibling rather than a parent of the tooltip makes it easier to apply

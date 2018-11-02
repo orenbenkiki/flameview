@@ -652,28 +652,28 @@ function update_cell(visible_columns_mask,
     var width = Math.round((cell_offset + cell_size) * scale_factor) - left;
     cell.style.width = width + "px";
 
-    var size = cell.querySelector(".size");
-    if (!size) {
+    var computed = cell.querySelector(".computed");
+    if (!computed) {
         return;
     }
 
     if (cell_size === total_size) {
-        size.innerText = cell_size;
+        computed.innerText = cell_size;
         return;
     }
 
-    var size_text = cell_size;
+    var computed_text = cell_size;
     if (visible_size !== total_size && cell_size !== visible_size) {
         var percentage_of_visible = 100 * cell_size / visible_size;
-        size_text += "<br/>" + stringify(percentage_of_visible) +
+        computed_text += "<br/>" + stringify(percentage_of_visible) +
                 "% out of: " + stringify(visible_size) + " visible";
     }
 
     var percentage_of_total = 100 * cell_size / total_size;
-    size_text += "<br/>" + stringify(percentage_of_total) +
+    computed_text += "<br/>" + stringify(percentage_of_total) +
             "% out of: " + stringify(total_size) + " total";
 
-    size.innerHTML = size_text;
+    computed.innerHTML = computed_text;
 }
 
 // Update all the cells visibility and width.
@@ -782,8 +782,10 @@ function on_click(event) {
 // Disable tooltips.
 function disable_tooltip(event) {
     "use strict";
-    document.getElementById("graph").classList.remove("tooltipped");
-    event.stopPropagation();
+    if (event.altKey) {
+        document.getElementById("graph").classList.remove("tooltipped");
+        event.stopPropagation();
+    }
 }
 
 // Attach handlers to table cells.
@@ -843,835 +845,835 @@ window.onload = on_load;
 <h1 id="title">Flame Graph</h1>
 <div id="graph" class="tooltipped">
 <div class="row">
-<div id="N38" class="leaf" style="background-color: rgb(254, 100, 32)">
+<div id="N38" class="leaf" style="background-color: rgb(248, 173, 36)">
 <div class="tooltip">
 <span class="name">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</div>
 </div>
-<div id="N81" class="leaf" style="background-color: rgb(229, 137, 41)">
+<div id="N81" class="leaf" style="background-color: rgb(222, 38, 38)">
 <div class="tooltip">
 <span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::set_len::h32f778ca25724bf1</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::set_len::h32f778ca25724bf1</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N35" class="leaf" style="background-color: rgb(224, 204, 1)">
+<div id="N35" class="leaf" style="background-color: rgb(220, 81, 30)">
 <div class="tooltip">
 <span class="name">_$LT$u8$u20$as$u20$core..clone..Clone$GT$::clone::h7bfab8630dda96cf</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$u8$u20$as$u20$core..clone..Clone$GT$::clone::h7bfab8630dda96cf</div>
 </div>
-<div id="N36" class="leaf" style="background-color: rgb(240, 156, 4)">
+<div id="N36" class="leaf" style="background-color: rgb(250, 32, 15)">
 <div class="tooltip">
 <span class="name">_$LT$usize$u20$as$u20$core..iter..range..Step$GT$::add_one::h0701a52b56dc0bbb</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$usize$u20$as$u20$core..iter..range..Step$GT$::add_one::h0701a52b56dc0bbb</div>
 </div>
-<div id="N37" class="sum" style="background-color: rgb(254, 175, 5)">
+<div id="N37" class="sum" style="background-color: rgb(218, 155, 23)">
 <div class="tooltip">
 <span class="name">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</div>
 </div>
-<div id="N39" class="leaf" style="background-color: rgb(209, 23, 19)">
+<div id="N39" class="leaf" style="background-color: rgb(213, 116, 7)">
 <div class="tooltip">
 <span class="name">core::ptr::write::haabbb39ab969e5ac</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::ptr::write::haabbb39ab969e5ac</div>
 </div>
-<div id="N65" class="leaf" style="background-color: rgb(245, 63, 40)">
+<div id="N65" class="leaf" style="background-color: rgb(234, 120, 50)">
 <div class="tooltip">
 <span class="name">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</div>
 </div>
-<div id="N80" class="sum" style="background-color: rgb(224, 102, 37)">
+<div id="N80" class="sum" style="background-color: rgb(208, 150, 33)">
 <div class="tooltip">
 <span class="name">_$</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N34" class="sum" style="background-color: rgb(233, 225, 30)">
+<div id="N34" class="sum" style="background-color: rgb(250, 5, 23)">
 <div class="tooltip">
 <span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</div>
 </div>
-<div id="N64" class="sum" style="background-color: rgb(243, 140, 35)">
+<div id="N64" class="sum" style="background-color: rgb(236, 116, 5)">
 <div class="tooltip">
 <span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</div>
 </div>
-<div id="N79" class="sum" style="background-color: rgb(214, 29, 37)">
+<div id="N79" class="sum" style="background-color: rgb(227, 102, 33)">
 <div class="tooltip">
 <span class="name">_$LT$collections..vec..Vec$LT$T$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$T$GT$$GT$::from_iter::h461e3a924bca1725</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$collections..vec..Vec$LT$T$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$T$GT$$GT$::from_iter::h461e3a924bca1725</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N33" class="sum" style="background-color: rgb(240, 176, 32)">
+<div id="N33" class="sum" style="background-color: rgb(206, 178, 5)">
 <div class="tooltip">
 <span class="name">collections::vec::from_elem::h0cb09490c5e14fb9</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">collections::vec::from_elem::h0cb09490c5e14fb9</div>
 </div>
-<div id="N63" class="sum" style="background-color: rgb(230, 3, 10)">
+<div id="N63" class="sum" style="background-color: rgb(233, 171, 19)">
 <div class="tooltip">
 <span class="name">collections::vec::from_elem::h0cb09490c5e14fb9</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">collections::vec::from_elem::h0cb09490c5e14fb9</div>
 </div>
-<div id="N78" class="sum" style="background-color: rgb(214, 157, 43)">
+<div id="N78" class="sum" style="background-color: rgb(210, 47, 19)">
 <div class="tooltip">
 <span class="name">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::h7ad818accf02e73a</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::h7ad818accf02e73a</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N32" class="sum" style="background-color: rgb(245, 82, 21)">
+<div id="N32" class="sum" style="background-color: rgb(245, 43, 49)">
 <div class="tooltip">
 <span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</div>
 </div>
-<div id="N62" class="sum" style="background-color: rgb(253, 200, 20)">
+<div id="N62" class="sum" style="background-color: rgb(226, 74, 42)">
 <div class="tooltip">
 <span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</div>
 </div>
-<div id="N77" class="sum" style="background-color: rgb(229, 184, 11)">
+<div id="N77" class="sum" style="background-color: rgb(226, 203, 49)">
 <div class="tooltip">
 <span class="name">core::iter::iterator::Iterator::collect::h53b7863e73fadbfc</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::iter::iterator::Iterator::collect::h53b7863e73fadbfc</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N31" class="sum" style="background-color: rgb(233, 172, 2)">
+<div id="N31" class="sum" style="background-color: rgb(247, 82, 50)">
 <div class="tooltip">
 <span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</div>
 </div>
-<div id="N61" class="sum" style="background-color: rgb(235, 152, 28)">
+<div id="N61" class="sum" style="background-color: rgb(230, 104, 3)">
 <div class="tooltip">
 <span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</div>
 </div>
-<div id="N76" class="sum" style="background-color: rgb(219, 105, 10)">
+<div id="N76" class="sum" style="background-color: rgb(205, 84, 52)">
 <div class="tooltip">
 <span class="name">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N30" class="sum" style="background-color: rgb(218, 151, 22)">
+<div id="N30" class="sum" style="background-color: rgb(214, 81, 13)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
 </div>
-<div id="N60" class="sum" style="background-color: rgb(220, 105, 23)">
+<div id="N60" class="sum" style="background-color: rgb(222, 165, 31)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N29" class="sum" style="background-color: rgb(239, 24, 30)">
+<div id="N29" class="sum" style="background-color: rgb(229, 166, 8)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
 </div>
-<div id="N59" class="sum" style="background-color: rgb(241, 22, 29)">
+<div id="N59" class="sum" style="background-color: rgb(244, 195, 29)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N28" class="sum" style="background-color: rgb(220, 190, 16)">
+<div id="N28" class="sum" style="background-color: rgb(226, 97, 22)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
 </div>
-<div id="N52" class="leaf" style="background-color: rgb(241, 37, 27)">
+<div id="N52" class="leaf" style="background-color: rgb(237, 119, 23)">
 <div class="tooltip">
 <span class="name">std::path::PathBuf::_push::h766d676eb9b04254</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">std::path::PathBuf::_push::h766d676eb9b04254</div>
 </div>
-<div id="N58" class="sum" style="background-color: rgb(240, 204, 34)">
+<div id="N58" class="sum" style="background-color: rgb(254, 50, 12)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N27" class="sum" style="background-color: rgb(254, 82, 7)">
+<div id="N27" class="sum" style="background-color: rgb(227, 30, 9)">
 <div class="tooltip">
 <span class="name">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</div>
 </div>
-<div id="N51" class="sum" style="background-color: rgb(247, 210, 28)">
+<div id="N51" class="sum" style="background-color: rgb(245, 84, 28)">
 <div class="tooltip">
 <span class="name">term::terminfo::searcher::get_dbpath_for_term::hffa8fd0e9637bc76</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::searcher::get_dbpath_for_term::hffa8fd0e9637bc76</div>
 </div>
-<div id="N57" class="sum" style="background-color: rgb(227, 38, 43)">
+<div id="N57" class="sum" style="background-color: rgb(205, 82, 28)">
 <div class="tooltip">
 <span class="name">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$core..result..Result$LT$T$C$$u20$E$GT$$GT$::and_then::h47fa4b8545196b9b</div>
 </div>
-<div id="N50" class="leaf" style="background-color: rgb(240, 31, 14)">
+<div id="N50" class="leaf" style="background-color: rgb(205, 109, 39)">
 <div class="tooltip">
 <span class="name">std::collections::hash::map::search_hashed::hae33740b510f48a0</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">std::collections::hash::map::search_hashed::hae33740b510f48a0</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N26" class="sum" style="background-color: rgb(229, 36, 8)">
+<div id="N26" class="sum" style="background-color: rgb(219, 225, 2)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</div>
 </div>
-<div id="N56" class="sum" style="background-color: rgb(222, 10, 54)">
+<div id="N56" class="sum" style="background-color: rgb(230, 205, 27)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_name::h721edfed0d4e6840</div>
 </div>
-<div id="N49" class="sum" style="background-color: rgb(234, 8, 24)">
+<div id="N49" class="sum" style="background-color: rgb(216, 203, 3)">
 <div class="tooltip">
 <span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert_hashed_nocheck::h980e74df27f75c7d</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert_hashed_nocheck::h980e74df27f75c7d</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N25" class="sum" style="background-color: rgb(216, 170, 0)">
+<div id="N25" class="sum" style="background-color: rgb(207, 164, 52)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</div>
 </div>
-<div id="N55" class="sum" style="background-color: rgb(237, 194, 32)">
+<div id="N55" class="sum" style="background-color: rgb(219, 71, 50)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_env::h7aa5bbfa652bcb0d</div>
 </div>
-<div id="N48" class="sum" style="background-color: rgb(249, 6, 23)">
+<div id="N48" class="sum" style="background-color: rgb(210, 48, 7)">
 <div class="tooltip">
 <span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert::h111f2759872ecfc7</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$GT$::insert::h111f2759872ecfc7</div>
 </div>
-<div id="N75" class="leaf" style="background-color: rgb(207, 91, 8)">
+<div id="N75" class="leaf" style="background-color: rgb(231, 115, 23)">
 <div class="tooltip">
 <span class="name">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::cmp::impls::_$LT$impl$u20$core..cmp..PartialOrd$u20$for$u20$usize$GT$::lt::hf4d08bdc2d45569c</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N24" class="sum" style="background-color: rgb(245, 143, 17)">
+<div id="N24" class="sum" style="background-color: rgb(211, 29, 10)">
 <div class="tooltip">
 <span class="name">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::hcd1c44cd143417f6</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::hcd1c44cd143417f6</div>
 </div>
-<div id="N54" class="sum" style="background-color: rgb(244, 8, 39)">
+<div id="N54" class="sum" style="background-color: rgb(232, 191, 11)">
 <div class="tooltip">
 <span class="name">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::h52a3a52cf0fd4041</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$term..terminfo..TerminfoTerminal$LT$T$GT$$GT$::new::h52a3a52cf0fd4041</div>
 </div>
-<div id="N47" class="sum" style="background-color: rgb(234, 183, 52)">
+<div id="N47" class="sum" style="background-color: rgb(222, 145, 37)">
 <div class="tooltip">
 <span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..Extend$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::extend::hdf73438726a85d11</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..Extend$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::extend::hdf73438726a85d11</div>
 </div>
-<div id="N74" class="sum" style="background-color: rgb(214, 106, 46)">
+<div id="N74" class="sum" style="background-color: rgb(239, 77, 7)">
 <div class="tooltip">
 <span class="name">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::iter::range::_$LT$impl$u20$core..iter..iterator..Iterator$u20$for$u20$core..ops..Range$LT$A$GT$$GT$::next::hd0b7b2668add6c40</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N23" class="sum" style="background-color: rgb(245, 223, 42)">
+<div id="N23" class="sum" style="background-color: rgb(230, 173, 9)">
 <div class="tooltip">
 <span class="name">term::stderr::h99e770fdfcb59b6c</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::stderr::h99e770fdfcb59b6c</div>
 </div>
-<div id="N53" class="sum" style="background-color: rgb(209, 199, 31)">
+<div id="N53" class="sum" style="background-color: rgb(219, 86, 15)">
 <div class="tooltip">
 <span class="name">term::stdout::hc71a921b9549a869</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::stdout::hc71a921b9549a869</div>
 </div>
-<div id="N46" class="sum" style="background-color: rgb(222, 134, 15)">
+<div id="N46" class="sum" style="background-color: rgb(215, 8, 2)">
 <div class="tooltip">
 <span class="name">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::from_iter::h3e3cdf90b15b4d33</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..collections..hash..map..HashMap$LT$K$C$$u20$V$C$$u20$S$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$$LP$K$C$$u20$V$RP$$GT$$GT$::from_iter::h3e3cdf90b15b4d33</div>
 </div>
-<div id="N73" class="sum" style="background-color: rgb(214, 116, 26)">
+<div id="N73" class="sum" style="background-color: rgb(219, 191, 23)">
 <div class="tooltip">
 <span class="name">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$collections..vec..Vec$LT$T$GT$$GT$::extend_with_element::hadc3afe1b04eb21a</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N22" class="sum" style="background-color: rgb(249, 40, 18)">
+<div id="N22" class="sum" style="background-color: rgb(228, 224, 0)">
 <div class="tooltip">
 <span class="name">simplelog::termlog::TermLogger::new::h94d15a7bc0cbc21f</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">simplelog::termlog::TermLogger::new::h94d15a7bc0cbc21f</div>
 </div>
-<div id="N45" class="sum" style="background-color: rgb(237, 223, 34)">
+<div id="N45" class="sum" style="background-color: rgb(245, 120, 40)">
 <div class="tooltip">
 <span class="name">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::hfcc04b97f5e4cef8</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$core..result..Result$LT$V$C$$u20$E$GT$$u20$as$u20$core..iter..traits..FromIterator$LT$core..result..Result$LT$A$C$$u20$E$GT$$GT$$GT$::from_iter::hfcc04b97f5e4cef8</div>
 </div>
-<div id="N72" class="sum" style="background-color: rgb(212, 153, 20)">
+<div id="N72" class="sum" style="background-color: rgb(244, 107, 45)">
 <div class="tooltip">
 <span class="name">collections::vec::from_elem::h0cb09490c5e14fb9</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">collections::vec::from_elem::h0cb09490c5e14fb9</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N21" class="sum" style="background-color: rgb(244, 32, 40)">
+<div id="N21" class="sum" style="background-color: rgb(253, 219, 39)">
 <div class="tooltip">
 <span class="name">simplelog::termlog::TermLogger::init::_$u7b$$u7b$closure$u7d$$u7d$::h347f6695ed91405f</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">simplelog::termlog::TermLogger::init::_$u7b$$u7b$closure$u7d$$u7d$::h347f6695ed91405f</div>
 </div>
-<div id="N44" class="sum" style="background-color: rgb(209, 13, 4)">
+<div id="N44" class="sum" style="background-color: rgb(253, 91, 15)">
 <div class="tooltip">
 <span class="name">core::iter::iterator::Iterator::collect::h3b339c4ccaa2a490</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">core::iter::iterator::Iterator::collect::h3b339c4ccaa2a490</div>
 </div>
-<div id="N71" class="sum" style="background-color: rgb(229, 218, 45)">
+<div id="N71" class="sum" style="background-color: rgb(236, 170, 32)">
 <div class="tooltip">
 <span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::with_capacity::h149b1cb009d20694</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N20" class="sum" style="background-color: rgb(232, 70, 17)">
+<div id="N20" class="sum" style="background-color: rgb(251, 102, 53)">
 <div class="tooltip">
 <span class="name">log::set_logger::_$u7b$$u7b$closure$u7d$$u7d$::hcb7821323b596727</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">log::set_logger::_$u7b$$u7b$closure$u7d$$u7d$::hcb7821323b596727</div>
 </div>
-<div id="N43" class="sum" style="background-color: rgb(231, 148, 11)">
+<div id="N43" class="sum" style="background-color: rgb(214, 204, 9)">
 <div class="tooltip">
 <span class="name">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::parser::compiled::parse::h0bfa24a8d6483291</div>
 </div>
-<div id="N70" class="sum" style="background-color: rgb(221, 167, 45)">
+<div id="N70" class="sum" style="background-color: rgb(226, 137, 37)">
 <div class="tooltip">
 <span class="name">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_$LT$std..io..buffered..BufReader$LT$R$GT$$GT$::new::h893d205748cacdd5</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N19" class="sum" style="background-color: rgb(221, 132, 47)">
+<div id="N19" class="sum" style="background-color: rgb(234, 16, 52)">
 <div class="tooltip">
 <span class="name">log::set_logger_raw::h2040ab7e0793ea3f</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">log::set_logger_raw::h2040ab7e0793ea3f</div>
 </div>
-<div id="N42" class="sum" style="background-color: rgb(242, 112, 30)">
+<div id="N42" class="sum" style="background-color: rgb(219, 90, 51)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
 </div>
-<div id="N69" class="sum" style="background-color: rgb(220, 138, 32)">
+<div id="N69" class="sum" style="background-color: rgb(214, 216, 5)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::_from_path::h51064971a80093cd</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::_from_path::h51064971a80093cd</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N18" class="sum" style="background-color: rgb(228, 127, 37)">
+<div id="N18" class="sum" style="background-color: rgb(241, 85, 3)">
 <div class="tooltip">
 <span class="name">log::set_logger::hfce3bfc5d262a203</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">log::set_logger::hfce3bfc5d262a203</div>
 </div>
-<div id="N41" class="sum" style="background-color: rgb(218, 43, 4)">
+<div id="N41" class="sum" style="background-color: rgb(251, 6, 6)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
 </div>
-<div id="N68" class="sum" style="background-color: rgb(241, 93, 8)">
+<div id="N68" class="sum" style="background-color: rgb(237, 36, 36)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_path::hc007f27f9c5301db</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N8" class="leaf" style="background-color: rgb(252, 45, 24)">
+<div id="N8" class="leaf" style="background-color: rgb(245, 41, 23)">
 <div class="tooltip">
 <span class="name">__strcasecmp</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">__strcasecmp</div>
 </div>
-<div id="N9" class="leaf" style="background-color: rgb(240, 76, 9)">
+<div id="N9" class="leaf" style="background-color: rgb(221, 5, 1)">
 <div class="tooltip">
 <span class="name">_dl_relocate_object</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_relocate_object</div>
 </div>
-<div id="N17" class="sum" style="background-color: rgb(245, 212, 21)">
+<div id="N17" class="sum" style="background-color: rgb(208, 45, 14)">
 <div class="tooltip">
 <span class="name">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</div>
 </div>
-<div id="N40" class="sum" style="background-color: rgb(214, 68, 51)">
+<div id="N40" class="sum" style="background-color: rgb(237, 125, 34)">
 <div class="tooltip">
 <span class="name">simpleloge::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">simpleloge::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
 </div>
-<div id="N67" class="sum" style="background-color: rgb(210, 190, 28)">
+<div id="N67" class="sum" style="background-color: rgb(237, 191, 20)">
 <div class="tooltip">
 <span class="name">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">term::terminfo::TermInfo::from_name::_$u7b$$u7b$closure$u7d$$u7d$::hbdb8aa57609652e0</div>
 </div>
-<div id="N83" class="leaf" style="background-color: rgb(217, 184, 19)">
+<div id="N83" class="leaf" style="background-color: rgb(229, 184, 54)">
 <div class="tooltip">
 <span class="name">page_fault</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">page_fault</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N6" class="leaf" style="background-color: rgb(236, 87, 1)">
+<div id="N6" class="leaf" style="background-color: rgb(219, 184, 10)">
 <div class="tooltip">
 <span class="name">_dl_init_paths</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_init_paths</div>
 </div>
-<div id="N7" class="sum" style="background-color: rgb(236, 39, 30)">
+<div id="N7" class="sum" style="background-color: rgb(223, 211, 53)">
 <div class="tooltip">
 <span class="name">dl_main</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">dl_main</div>
 </div>
-<div id="N16" class="sum" style="background-color: rgb(207, 168, 49)">
+<div id="N16" class="sum" style="background-color: rgb(225, 14, 12)">
 <div class="tooltip">
 <span class="name">emulator::main_ret::hc4b7fa9090639ebe</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">emulator::main_ret::hc4b7fa9090639ebe</div>
 </div>
-<div id="N66" class="sum" style="background-color: rgb(249, 215, 31)">
+<div id="N66" class="sum" style="background-color: rgb(254, 154, 15)">
 <div class="tooltip">
 <span class="name">emulator::main_ret::hc4b7fa909nd_then::h47fa4b8545196b9b</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">emulator::main_ret::hc4b7fa909nd_then::h47fa4b8545196b9b</div>
 </div>
-<div id="N82" class="sum" style="background-color: rgb(217, 204, 37)">
+<div id="N82" class="sum" style="background-color: rgb(217, 54, 34)">
 <div class="tooltip">
 <span class="name">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">simplelog::termlog::TermLogger::init::ha7463b1622ff979e</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N3" class="leaf" style="background-color: rgb(240, 153, 45)">
+<div id="N3" class="leaf" style="background-color: rgb(244, 37, 26)">
 <div class="tooltip">
 <span class="name">_dl_name_match_p</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_name_match_p</div>
 </div>
-<div id="N5" class="sum" style="background-color: rgb(213, 181, 19)">
+<div id="N5" class="sum" style="background-color: rgb(222, 206, 50)">
 <div class="tooltip">
 <span class="name">_dl_sysdep_start</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_sysdep_start</div>
 </div>
-<div id="N11" class="leaf" style="background-color: rgb(206, 45, 13)">
+<div id="N11" class="leaf" style="background-color: rgb(227, 42, 47)">
 <div class="tooltip">
 <span class="name">strcmp</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">strcmp</div>
 </div>
-<div id="N15" class="sum" style="background-color: rgb(237, 45, 36)">
+<div id="N15" class="sum" style="background-color: rgb(222, 77, 52)">
 <div class="tooltip">
 <span class="name">emulator::main::hc2aaa9b4591a10c7</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">emulator::main::hc2aaa9b4591a10c7</div>
 </div>
-<div id="N85" class="leaf" style="background-color: rgb(207, 99, 54)">
+<div id="N85" class="leaf" style="background-color: rgb(211, 180, 53)">
 <div class="tooltip">
 <span class="name">_dl_load_cache_lookup</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_load_cache_lookup</div>
 </div>
-<div id="N87" class="leaf" style="background-color: rgb(227, 204, 5)">
+<div id="N87" class="leaf" style="background-color: rgb(236, 4, 32)">
 <div class="tooltip">
 <span class="name">_dl_start</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_start</div>
 </div>
-<div id="N94" class="self" style="background-color: rgb(242, 54, 11)">
+<div id="N94" class="self" style="background-color: rgb(245, 93, 32)">
 <div class="tooltip">
 <span class="name">_start;(self)</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">(self)</div>
 </div>
-<div id="N89" class="leaf" style="background-color: rgb(245, 141, 34)">
+<div id="N89" class="leaf" style="background-color: rgb(254, 1, 10)">
 <div class="tooltip">
 <span class="name">page_fault</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">page_fault</div>
 </div>
-<div id="N92" class="leaf" style="background-color: rgb(231, 201, 33)">
+<div id="N92" class="leaf" style="background-color: rgb(245, 17, 10)">
 <div class="tooltip">
 <span class="name">page_fault</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">page_fault</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N2" class="sum" style="background-color: rgb(219, 67, 44)">
+<div id="N2" class="sum" style="background-color: rgb(210, 210, 50)">
 <div class="tooltip">
 <span class="name">[unknown &lt;2e747262696c0036&gt;]</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">[unknown &lt;2e747262696c0036&gt;]</div>
 </div>
-<div id="N4" class="sum" style="background-color: rgb(231, 37, 49)">
+<div id="N4" class="sum" style="background-color: rgb(207, 115, 38)">
 <div class="tooltip">
 <span class="name">[unknown &lt;40&gt;]</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">[unknown &lt;40&gt;]</div>
 </div>
-<div id="N10" class="sum" style="background-color: rgb(247, 165, 7)">
+<div id="N10" class="sum" style="background-color: rgb(243, 95, 7)">
 <div class="tooltip">
 <span class="name">[unknown &lt;63636762696c0036&gt;]</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">[unknown &lt;63636762696c0036&gt;]</div>
 </div>
-<div id="N12" class="leaf" style="background-color: rgb(247, 166, 42)">
+<div id="N12" class="leaf" style="background-color: rgb(251, 78, 54)">
 <div class="tooltip">
 <span class="name">__GI_____strtoull_l_internal</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">__GI_____strtoull_l_internal</div>
 </div>
-<div id="N13" class="leaf" style="background-color: rgb(248, 59, 15)">
+<div id="N13" class="leaf" style="background-color: rgb(239, 84, 38)">
 <div class="tooltip">
 <span class="name">__GI___readlink</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">__GI___readlink</div>
 </div>
-<div id="N14" class="sum" style="background-color: rgb(220, 40, 24)">
+<div id="N14" class="sum" style="background-color: rgb(241, 54, 11)">
 <div class="tooltip">
 <span class="name">__rust_maybe_catch_panic</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">__rust_maybe_catch_panic</div>
 </div>
-<div id="N84" class="sum" style="background-color: rgb(229, 62, 39)">
+<div id="N84" class="sum" style="background-color: rgb(253, 83, 23)">
 <div class="tooltip">
 <span class="name">_dl_map_object</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_map_object</div>
 </div>
-<div id="N86" class="sum" style="background-color: rgb(242, 126, 13)">
+<div id="N86" class="sum" style="background-color: rgb(209, 181, 4)">
 <div class="tooltip">
 <span class="name">_dl_start_user</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_dl_start_user</div>
 </div>
-<div id="N88" class="sum" style="background-color: rgb(231, 15, 20)">
+<div id="N88" class="sum" style="background-color: rgb(238, 143, 0)">
 <div class="tooltip">
 <span class="name">_start</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">_start</div>
 </div>
-<div id="N90" class="leaf" style="background-color: rgb(248, 122, 35)">
+<div id="N90" class="leaf" style="background-color: rgb(235, 228, 48)">
 <div class="tooltip">
 <span class="name">je_arena_ralloc_no_move</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">je_arena_ralloc_no_move</div>
 </div>
-<div id="N91" class="sum" style="background-color: rgb(216, 140, 31)">
+<div id="N91" class="sum" style="background-color: rgb(222, 37, 34)">
 <div class="tooltip">
 <span class="name">je_arena_tcache_fill_small</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">je_arena_tcache_fill_small</div>
 </div>
-<div id="N93" class="leaf" style="background-color: rgb(216, 150, 35)">
+<div id="N93" class="leaf" style="background-color: rgb(211, 198, 38)">
 <div class="tooltip">
 <span class="name">je_tcache_boot</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">je_tcache_boot</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N1" class="sum" style="background-color: rgb(215, 36, 19)">
+<div id="N1" class="sum" style="background-color: rgb(227, 109, 54)">
 <div class="tooltip">
 <span class="name">emulator</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">emulator</div>
 </div>
 <div class="height">&nbsp;</div>
 </div>
 <div class="row">
-<div id="N0" class="sum" style="background-color: rgb(226, 190, 21)">
+<div id="N0" class="sum" style="background-color: rgb(220, 29, 13)">
 <div class="tooltip">
 <span class="name">all</span><br/>
 <hr/>
-<div class="computed">samples: <span class="size"></span></div>
+<div class="basic">samples: <span class="computed"></span></div>
 </div>
 <div class="label">all</div>
 </div>

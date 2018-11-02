@@ -10,6 +10,7 @@ from argparse import ArgumentParser
 from argparse import Namespace
 from argparse import RawDescriptionHelpFormatter
 from random import random
+from random import seed
 from textwrap import dedent
 from typing import Any
 from typing import Callable
@@ -20,7 +21,7 @@ from typing import TextIO
 from typing import Tuple
 
 
-VERSION = "0.1-b3"
+VERSION = "0.1-b4"
 
 
 # pylint: disable=too-many-lines
@@ -66,9 +67,9 @@ def _main() -> None:  # pylint: disable=too-many-locals
                         'default: 0.1 (1/1000 of the total)')
 
     parser.add_argument('--sortby', metavar='SORT_KEY',
-                        default='name', choices=['name', 'counts'],
+                        default='name', choices=['name', 'size'],
                         help='How to sort nodes:\n'
-                        'name (default) - lexicographically, counts - by the counted data')
+                        'name (default) - lexicographically, size - by the size data')
 
     parser.add_argument('--inverted', action='store_true',
                         help='If specified, generate an inverted (icicles) graph.')
@@ -77,8 +78,8 @@ def _main() -> None:  # pylint: disable=too-many-locals
                         help='An optional title for the HTML document; '
                         'default: "Flame Graph" or "Icicle Graph"')
 
-    parser.add_argument('--countname', metavar='NAME', default="samples",
-                        help='The name of the counted data; default: "samples".')
+    parser.add_argument('--sizename', metavar='NAME', default="samples",
+                        help='The name of the size data; default: "samples".')
 
     parser.add_argument('--nodefaultcss', action='store_true',
                         help='If specified, the default appearance CSS is omitted, '
@@ -93,6 +94,10 @@ def _main() -> None:  # pylint: disable=too-many-locals
                         help='The color palette to use, subset of flamegraph.pl; '
                              'default: "hot", other choices: '
                              'mem, io, red, green, blue, aqua, yellow, purple, orange')
+
+    parser.add_argument('--seed', metavar='SEED', default=None, type=int,
+                        help='An optional seed for repeatable random color generation; '
+                        'default: None')
 
     parser.add_argument('--strict', action='store_true',
                         help='If specified, abort with an error on invalid input lines.')
@@ -113,15 +118,17 @@ def _main() -> None:  # pylint: disable=too-many-locals
         print('flameview.py: version %s' % VERSION)
         sys.exit(0)
 
+    seed(args.seed)
+
     root = _load_input_data(args.input, args.strict)
     _add_self_nodes(root)
     _compute_sizes(root)
     _prune_small_nodes(root, args.minpercent)
-    counts = _count_tree_names(root)
-    groups = _compute_tree_groups(root, counts)
+    sizes = _size_tree_names(root)
+    groups = _compute_tree_groups(root, sizes)
 
     column_sizes = \
-        _compute_tree_column_sizes(root, {'name': _by_name, 'counts': _by_size}[args.sortby])
+        _compute_tree_column_sizes(root, {'name': _by_name, 'size': _by_size}[args.sortby])
     rows = _compute_tree_rows(root)
 
     _print_output_data(args, groups, column_sizes, rows)
@@ -141,10 +148,10 @@ def _load_data_file(path: str, is_strict: bool, file: TextIO) -> Node:
         (?:
             (?:
                 \s+
-                ([1-9]\d*)
+                ([+]?\d*\.?\d+(?:[eE][-+]?\d+)?)
                 (?:
                     \s+
-                    (\d+)
+                    ([+-]?\d*\.?\d+(?:[eE][-+]?\d+)?)
                 )?
             )
             (?:
@@ -167,11 +174,8 @@ def _load_data_file(path: str, is_strict: bool, file: TextIO) -> Node:
                 sys.stderr.write('flameview.py: %s:%s: error: invalid line\n' % (path, line_number))
             ignored += 1
             continue
-        name, count, _difference, tooltip_html = match.group(1, 2, 3, 4)
-        names = name.split(';')
-        size = float(count or 1)
-        tooltip_html = tooltip_html or ''
-        _add_node(names, root, Entry(size, tooltip_html))
+        names_text, size_text, _difference_text, tooltip_text = match.group(1, 2, 3, 4)
+        _add_node(names_text.split(';'), root, Entry(float(size_text), tooltip_text or ''))
 
     if ignored > 0:
         if is_strict:
@@ -260,28 +264,28 @@ def _prune_small_tree(parent: Node, min_size: float) -> None:
     parent.nodes['...'] = small_node
 
 
-def _count_tree_names(root: Node) -> Dict[str, int]:
-    counts: Dict[str, int] = {}
-    _count_names(root, counts)
-    return counts
+def _size_tree_names(root: Node) -> Dict[str, int]:
+    sizes: Dict[str, int] = {}
+    _size_names(root, sizes)
+    return sizes
 
 
-def _count_names(parent: Node, counts: Dict[str, int]):
+def _size_names(parent: Node, sizes: Dict[str, int]):
     for node in parent.nodes.values():
-        counts[node.name] = counts.get(node.name, 0) + 1
-        _count_names(node, counts)
+        sizes[node.name] = sizes.get(node.name, 0) + 1
+        _size_names(node, sizes)
 
 
-def _compute_tree_groups(root: Node, counts: Dict[str, int]) -> Dict[str, List[int]]:
+def _compute_tree_groups(root: Node, sizes: Dict[str, int]) -> Dict[str, List[int]]:
     groups: Dict[str, List[int]] = {}
-    _compute_groups(root, counts, groups)
+    _compute_groups(root, sizes, groups)
     return groups
 
 
-def _compute_groups(parent: Node, counts: Dict[str, int], groups: Dict[str, List[int]]) -> None:
+def _compute_groups(parent: Node, sizes: Dict[str, int], groups: Dict[str, List[int]]) -> None:
     for node in parent.nodes.values():
-        _compute_groups(node, counts, groups)
-        if counts[node.name] == 1:
+        _compute_groups(node, sizes, groups)
+        if sizes[node.name] == 1:
             continue
         node.group = node.name
         group = groups.get(node.name, None)
@@ -557,28 +561,28 @@ function update_cell(visible_columns_mask,
     var width = Math.round((cell_offset + cell_size) * scale_factor) - left;
     cell.style.width = width + "px";
 
-    var size = cell.querySelector(".size");
-    if (!size) {
+    var computed = cell.querySelector(".computed");
+    if (!computed) {
         return;
     }
 
     if (cell_size === total_size) {
-        size.innerText = cell_size;
+        computed.innerText = cell_size;
         return;
     }
 
-    var size_text = cell_size;
+    var computed_text = cell_size;
     if (visible_size !== total_size && cell_size !== visible_size) {
         var percentage_of_visible = 100 * cell_size / visible_size;
-        size_text += "<br/>" + stringify(percentage_of_visible) +
+        computed_text += "<br/>" + stringify(percentage_of_visible) +
                 "% out of: " + stringify(visible_size) + " visible";
     }
 
     var percentage_of_total = 100 * cell_size / total_size;
-    size_text += "<br/>" + stringify(percentage_of_total) +
+    computed_text += "<br/>" + stringify(percentage_of_total) +
             "% out of: " + stringify(total_size) + " total";
 
-    size.innerHTML = size_text;
+    computed.innerHTML = computed_text;
 }
 
 // Update all the cells visibility and width.
@@ -687,8 +691,10 @@ function on_click(event) {
 // Disable tooltips.
 function disable_tooltip(event) {
     "use strict";
-    document.getElementById("graph").classList.remove("tooltipped");
-    event.stopPropagation();
+    if (event.altKey) {
+        document.getElementById("graph").classList.remove("tooltipped");
+        event.stopPropagation();
+    }
 }
 
 // Attach handlers to table cells.
@@ -797,9 +803,9 @@ def _print_output_file(file: TextIO, args: Namespace, groups: Dict[str, List[int
 
     _print_h1(file, title)
     if args.inverted:
-        _print_table(file, args.countname, args.colors, rows)
+        _print_table(file, args.sizename, args.colors, rows)
     else:
-        _print_table(file, args.countname, args.colors, list(reversed(rows)))
+        _print_table(file, args.sizename, args.colors, list(reversed(rows)))
 
     file.write(AFTER_HTML)
 
@@ -871,25 +877,25 @@ def _print_h1(file: TextIO, title: str) -> None:
     file.write('<h1 id="title">%s</h1>\n' % title)
 
 
-def _print_table(file: TextIO, countname: str, palette: str, rows: List[List[Node]]) -> None:
+def _print_table(file: TextIO, sizename: str, palette: str, rows: List[List[Node]]) -> None:
     file.write('<div id="graph" class="tooltipped">\n')
     for row in rows:
-        _print_row(file, countname, palette, row)
+        _print_row(file, sizename, palette, row)
     file.write('</div>\n')
 
 
-def _print_row(file: TextIO, countname: str, palette: str, row: List[Node]) -> None:
+def _print_row(file: TextIO, sizename: str, palette: str, row: List[Node]) -> None:
     file.write('<div class="row">\n')
     for node in row:
-        _print_node(file, countname, palette, node)
+        _print_node(file, sizename, palette, node)
     file.write('<div class="height">&nbsp;</div>\n')
     file.write('</div>\n')
 
 
-def _print_node(file: TextIO, countname: str, palette: str, node: Node) -> None:
+def _print_node(file: TextIO, sizename: str, palette: str, node: Node) -> None:
     file.write('<div id="N%s" class="%s"' % (node.index, node.klass))
     file.write(' style="background-color: %s">\n' % _node_color(node, palette))
-    _print_tooltip(file, countname, node)
+    _print_tooltip(file, sizename, node)
     _print_label(file, node)
     file.write('</div>\n')
 
@@ -993,11 +999,11 @@ def _orange_color() -> Tuple[float, float, float]:
     return red, green, blue
 
 
-def _print_tooltip(file: TextIO, countname: str, node: Node) -> None:
+def _print_tooltip(file: TextIO, sizename: str, node: Node) -> None:
     file.write('<div class="tooltip">\n')
     file.write('<span class="name">%s</span><br/>\n' % _escape(node.name))
     file.write('<hr/>\n')
-    file.write('<div class="computed">%s: <span class="size"></span></div>\n' % countname)
+    file.write('<div class="basic">%s: <span class="computed"></span></div>\n' % sizename)
     if node.entry and node.entry.tooltip_html:
         file.write('<div class="extra">\n')
         file.write(node.entry.tooltip_html)
