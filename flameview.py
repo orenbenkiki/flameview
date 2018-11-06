@@ -566,12 +566,12 @@ function update_cell(visible_columns_mask,
         return;
     }
 
+    var computed_text = stringify(cell_size);
     if (cell_size === total_size) {
-        computed.innerText = cell_size;
+        computed.innerText = computed_text;
         return;
     }
 
-    var computed_text = cell_size;
     if (visible_size !== total_size && cell_size !== visible_size) {
         var percentage_of_visible = 100 * cell_size / visible_size;
         computed_text += "<br/>" + stringify(percentage_of_visible) +
