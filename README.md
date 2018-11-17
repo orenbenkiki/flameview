@@ -75,7 +75,7 @@ The output of ``flameview.py -h`` is:
                             lines.
       --output HTML         The HTML file to write; default: "-", write to
                             standard output
-      --version             Print the version information (0.1-b4) and exit
+      --version             Print the version information (0.1-b5) and exit
 
     INPUT: A flamegraph file. Each line must be in the format:
 
