@@ -21,7 +21,7 @@ from typing import TextIO
 from typing import Tuple
 
 
-VERSION = "0.1-b4"
+VERSION = "0.1-b5"
 
 
 # pylint: disable=too-many-lines
@@ -67,9 +67,11 @@ def _main() -> None:  # pylint: disable=too-many-locals
                         'default: 0.1 (1/1000 of the total)')
 
     parser.add_argument('--sortby', metavar='SORT_KEY',
-                        default='name', choices=['name', 'size'],
+                        default='name', choices=['name', 'size', 'input'],
                         help='How to sort nodes:\n'
-                        'name (default) - lexicographically, size - by the size data')
+                        'name (default) - lexicographically, '
+                        'size - by the size data, '
+                        'input - by input order')
 
     parser.add_argument('--inverted', action='store_true',
                         help='If specified, generate an inverted (icicles) graph.')
@@ -127,8 +129,8 @@ def _main() -> None:  # pylint: disable=too-many-locals
     sizes = _size_tree_names(root)
     groups = _compute_tree_groups(root, sizes)
 
-    column_sizes = \
-        _compute_tree_column_sizes(root, {'name': _by_name, 'size': _by_size}[args.sortby])
+    sort_key = {'name': _by_name, 'size': _by_size, 'input': _by_input}[args.sortby]
+    column_sizes = _compute_tree_column_sizes(root, sort_key)
     rows = _compute_tree_rows(root)
 
     _print_output_data(args, groups, column_sizes, rows)
@@ -300,6 +302,10 @@ def _by_name(node: Node) -> str:
 
 def _by_size(node: Node) -> float:
     return -node.total_size
+
+
+def _by_input(node: Node) -> int:
+    return node.index
 
 
 def _compute_tree_column_sizes(parent: Node, sort_key: Callable[[Node], Any]) -> List[float]:

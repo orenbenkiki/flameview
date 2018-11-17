@@ -15,7 +15,7 @@ correct python interpreter; by default it invokes `python3`.
 
 ## STATUS
 
-This is a beta version **0.1-b4**. It provides the basic functionality and seems
+This is a beta version **0.1-b5**. It provides the basic functionality and seems
 to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
 Feedback is welcome.
 
@@ -58,7 +58,7 @@ The output of ``flameview.py -h`` is:
       --minpercent PERCENT  The minimal percent of the entries to display;
                             default: 0.1 (1/1000 of the total)
       --sortby SORT_KEY     How to sort nodes: name (default) - lexicographically,
-                            size - by the size data
+                            size - by the size data, input - by input order
       --inverted            If specified, generate an inverted (icicles) graph.
       --title TITLE         An optional title for the HTML document; default:
                             "Flame Graph" or "Icicle Graph"
