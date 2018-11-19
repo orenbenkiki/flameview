@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Flame Graph</title>
+<style>
+/*** Layout: ***/
+
+* {
+    box-sizing: border-box;
+}
+
+#width, #graph, #row, #height {
+    margin: 0;
+    padding: 0;
+}
+
+.row {
+    position: relative;
+}
+
+.leaf,
+.self,
+.sum {
+    position: absolute;
+}
+
+.label {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+}
+
+/*** Default Appearance: ***/
+
+* {
+    font-family: sans-serif;
+}
+
+.leaf,
+.self,
+.sum {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 4px;
+    border-color: black;
+    text-align: center;
+}
+
+.group_hover .label {
+    background-color: ivory !important;
+}
+
+.name {
+    font-style: italic;
+}
+
+.selected .label {
+    font-weight: bold;
+}
+
+.selected .name {
+    font-weight: bold;
+}
+
+.tooltip {
+    border-style: solid;
+    border-width: 2px;
+    border-radius: 4px;
+    border-color: black;
+    background-color: ivory;
+    padding: 0.25em 0.5em 0.25em 0.5em;
+    text-align: left;
+}
+
+.tooltipped .leaf:hover .tooltip,
+.tooltipped .self:hover .tooltip,
+.tooltipped .sum:hover .tooltip {
+    visibility: visible;
+}
+</style>
+<script>
+/*jslint browser: true*/
+
+/*** Generated Data: ***/
+
+// Data for each cells group:
+//   cell_ids: The ids of the group cells.
+// On load, the following is computed for each group:
+//   columns_mask: A 0/1 mask of all the columns used by the group cells.
+var groups_data = {
+    "(gripe)": {"cell_ids": ["N14", "N34", "N43"]},
+    "(small)": {"cell_ids": ["N53", "N54", "N55"]},
+    "(sync)": {"cell_ids": ["N13", "N21", "N42"]},
+    "choose_indices_of_seeds": {"cell_ids": ["N31", "N37"]},
+    "compute_partition_indices_of_profiles": {"cell_ids": ["N30", "N36"]},
+    "optimize_partition_indices_of_profiles": {"cell_ids": ["N32", "N38"]}
+};
+
+// Data for each cell:
+//   level: The stack nesting level.
+//   columns_mask: A 0/1 mask of all the columns used by the cell.
+//   group_id: The group the cell belongs to, if any.
+var cells_data = {
+    "N0": {
+        "level": 0,
+        "columns_mask": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    "N1": {
+        "level": 1,
+        "columns_mask": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    },
+    "N2": {
+        "level": 2,
+        "columns_mask": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+    },
+    "N52": {
+        "level": 2,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+    },
+    "N3": {
+        "level": 3,
+        "columns_mask": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+    },
+    "N55": {
+        "level": 4,
+        "columns_mask": [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(small)"
+    },
+    "N4": {
+        "level": 4,
+        "columns_mask": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0]
+    },
+    "N46": {
+        "level": 4,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
+    },
+    "N16": {
+        "level": 5,
+        "columns_mask": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N8": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N39": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N35": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N36": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+        "group_id": "compute_partition_indices_of_profiles"
+    },
+    "N15": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
+    },
+    "N6": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
+    },
+    "N5": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
+    },
+    "N7": {
+        "level": 5,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
+    },
+    "N17": {
+        "level": 6,
+        "columns_mask": [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N50": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N11": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N10": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N9": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N54": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(small)"
+    },
+    "N40": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N37": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "choose_indices_of_seeds"
+    },
+    "N38": {
+        "level": 6,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+        "group_id": "optimize_partition_indices_of_profiles"
+    },
+    "N34": {
+        "level": 7,
+        "columns_mask": [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(gripe)"
+    },
+    "N18": {
+        "level": 7,
+        "columns_mask": [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N14": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(gripe)"
+    },
+    "N12": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N43": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(gripe)"
+    },
+    "N41": {
+        "level": 7,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N21": {
+        "level": 8,
+        "columns_mask": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(sync)"
+    },
+    "N25": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N23": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N22": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N19": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N24": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N13": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(sync)"
+    },
+    "N48": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N42": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(sync)"
+    },
+    "N51": {
+        "level": 8,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N26": {
+        "level": 9,
+        "columns_mask": [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N49": {
+        "level": 9,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N20": {
+        "level": 9,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N53": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "(small)"
+    },
+    "N33": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N30": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "compute_partition_indices_of_profiles"
+    },
+    "N29": {
+        "level": 10,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "N31": {
+        "level": 11,
+        "columns_mask": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "choose_indices_of_seeds"
+    },
+    "N32": {
+        "level": 11,
+        "columns_mask": [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        "group_id": "optimize_partition_indices_of_profiles"
+    }
+};
+
+// The size of each leaf/self cell (that is, a column).
+var column_sizes = [0.035379, 0.512937, 0.673455, 0.02, 6.349433, 0.56416, 2.635355, 0.31063, 0.026455, 0.734477, 1.232612, 0.348803, 0.533267, 0.053111, 0.073962, 0.92466, 1.708113, 0.492148, 0.293718, 0.019315, 0.182419, 0.465337, 0.88376, 0.806588, 0.060809, 0.103918, 1.594884, 0.403737, 0.128717, 0.653491, 0.082856, 0.074057];
+
+/*** Behavior: ***/
+
+// The total size of everything (for computing percentages).
+// Computed on load.
+var total_size = null;
+
+// The list of currently selected cell ids.
+var selected_cell_ids = [];
+
+// The id of the root cell that covers everything (by convention).
+var root_id = "N0";
+
+// Compute which columns are visible given the current selection.
+function compute_visible_columns_mask() {
+    "use strict";
+    if (selected_cell_ids.length === 1) {
+        var selected_cell_id = selected_cell_ids[0];
+        return cells_data[selected_cell_id].columns_mask;
+    }
+
+    var lowest_cell_id = undefined;
+    var lowest_level = undefined;
+    selected_cell_ids.forEach(function (cell_id) {
+        var cell_level = cells_data[cell_id].level;
+        if (lowest_cell_id === undefined || lowest_level > cell_level) {
+            lowest_cell_id = cell_id;
+            lowest_level = cell_level;
+        }
+    });
+
+    var visible_columns_mask = cells_data[lowest_cell_id].columns_mask.slice();
+    selected_cell_ids.forEach(function (cell_id) {
+        var group_id = cells_data[cell_id].group_id;
+        var columns_mask = (
+            group_id
+            ? groups_data[group_id].columns_mask
+            : cells_data[cell_id].columns_mask
+        );
+        columns_mask.forEach(function (is_column_in_group, column_index) {
+            visible_columns_mask[column_index] *= is_column_in_group;
+        });
+    });
+    return visible_columns_mask;
+}
+
+// Compute the total size of the visible columns.
+function compute_visible_size(visible_columns_mask) {
+    "use strict";
+    var visible_size = 0;
+    column_sizes.forEach(function (column_size, column_index) {
+        visible_size += column_size * visible_columns_mask[column_index];
+    });
+    return visible_size;
+}
+
+// Convert a number to a human-friendly precision.
+//
+// Allow no more than 2 decimal digits after the `.`, unless the number is very
+// small, in which case allow as many as needed so that the first two
+// significant digits are visible.
+function stringify(number) {
+    "use strict";
+    if (number === 0) {
+        return number;
+    }
+    if (number < 0) {
+        return "-" + stringify(-number);
+    }
+    var precision = 1;
+    var result = 0;
+    while (result === 0) {
+        precision *= 10;
+        result = Math.round(number * precision) / precision;
+    }
+    precision *= 10;
+    return Math.round(number * precision) / precision;
+}
+
+// Update the visibility and width of a specific cell.
+function update_cell(visible_columns_mask,
+        scale_factor, visible_size, cell_id) {
+    "use strict";
+    var cell_data = cells_data[cell_id];
+    var cell = document.getElementById(cell_id);
+
+    var cell_offset_is_done = false;
+    var cell_offset = 0;
+    var cell_size = 0;
+    cell_data.columns_mask.forEach(function (is_column_used, column_index) {
+        if (visible_columns_mask[column_index] > 0) {
+            if (is_column_used > 0) {
+                cell_offset_is_done = true;
+                cell_size += column_sizes[column_index];
+            } else if (!cell_offset_is_done) {
+                cell_offset += column_sizes[column_index];
+            }
+        }
+    });
+
+    if (!cell_offset_is_done) {
+        cell.style.display = "none";
+        return;
+    }
+
+    cell.style.display = null;
+    var left = Math.round(cell_offset * scale_factor);
+    cell.style.left = left + "px";
+    var width = Math.round((cell_offset + cell_size) * scale_factor) - left;
+    cell.style.width = width + "px";
+
+    var computed = cell.querySelector(".computed");
+    if (!computed) {
+        return;
+    }
+
+    var computed_text = stringify(cell_size);
+    if (cell_size === total_size) {
+        computed.innerText = computed_text;
+        return;
+    }
+
+    if (visible_size !== total_size && cell_size !== visible_size) {
+        var percentage_of_visible = 100 * cell_size / visible_size;
+        computed_text += "<br/>" + stringify(percentage_of_visible) +
+                "% out of: " + stringify(visible_size) + " visible";
+    }
+
+    var percentage_of_total = 100 * cell_size / total_size;
+    computed_text += "<br/>" + stringify(percentage_of_total) +
+            "% out of: " + stringify(total_size) + " total";
+
+    computed.innerHTML = computed_text;
+}
+
+// Update all the cells visibility and width.
+//
+// Must be done every time the selected cell and/or the display width change.
+function update_cells() {
+    "use strict";
+    var visible_columns_mask = compute_visible_columns_mask();
+    var visible_size = compute_visible_size(visible_columns_mask);
+    var graph_width = document.getElementById("width").clientWidth;
+    var graph = document.getElementById("graph");
+    graph.style.width = graph_width + "px";
+    var scale_factor = (graph_width - 2) / visible_size;
+    Object.keys(cells_data).forEach(function (cell_id) {
+        update_cell(visible_columns_mask, scale_factor, visible_size, cell_id);
+    });
+}
+
+// Cell hover highlights all cells in a group.
+// The cell itself is highlighted using the :hover CSS selector.
+// The other cells in the group are highlighted using the group_hover class.
+
+// Highlight all group cells on entry.
+function on_over(event) {
+    "use strict";
+    var cell = event.currentTarget;
+    var group_id = cells_data[cell.id].group_id;
+    if (group_id) {
+        groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
+            var group_cell = document.getElementById(group_cell_id);
+            group_cell.classList.add("group_hover");
+        });
+    } else {
+        cell.classList.add("group_hover");
+    }
+}
+
+// Unhighlight all group cells on exit.
+function on_out(event) {
+    "use strict";
+    var cell = event.currentTarget;
+    var group_id = cells_data[cell.id].group_id;
+    if (group_id) {
+        groups_data[group_id].cell_ids.forEach(function (group_cell_id) {
+            var group_cell = document.getElementById(group_cell_id);
+            group_cell.classList.remove("group_hover");
+        });
+    } else {
+        cell.classList.remove("group_hover");
+    }
+}
+
+// Select a cell for filtering the visible graph content.
+//
+// A simple click just shows the selected cell columns,
+// a control-click adds/removes selected cells,
+// an alt-click toggles tooltips.
+//
+// When multiple cells are selected, the lowest-level one restricts the set of
+// columns, and each additional higher-level cell further restricts the columns
+// to these covered by the group the cell belongs to.
+function on_click(event) {
+    "use strict";
+    var cell = event.currentTarget;
+
+    if (event.altKey) {
+        document.getElementById("graph").classList.add("tooltipped");
+        return;
+    }
+
+    if (!event.ctrlKey) {
+        selected_cell_ids.forEach(function (cell_id) {
+            document.getElementById(cell_id).classList.remove("selected");
+        });
+        selected_cell_ids = [cell.id];
+        cell.classList.add("selected");
+        update_cells();
+        return;
+    }
+
+    var new_selected_cell_ids = [];
+    selected_cell_ids.forEach(function (cell_id) {
+        if (cell_id !== cell.id) {
+            new_selected_cell_ids.push(cell_id);
+        }
+    });
+
+    if (new_selected_cell_ids.length === selected_cell_ids.length) {
+        selected_cell_ids.push(cell.id);
+        cell.classList.add("selected");
+        update_cells();
+        return;
+    }
+
+    cell.classList.remove("selected");
+    selected_cell_ids = new_selected_cell_ids;
+
+    if (new_selected_cell_ids.length === 0) {
+        selected_cell_ids = [root_id];
+        document.getElementById(root_id).classList.add("selected");
+    }
+
+    update_cells();
+}
+
+// Disable tooltips.
+function disable_tooltip(event) {
+    "use strict";
+    if (event.altKey) {
+        document.getElementById("graph").classList.remove("tooltipped");
+        event.stopPropagation();
+    }
+}
+
+// Attach handlers to table cells.
+function register_handlers() {
+    "use strict";
+    Object.keys(cells_data).forEach(function (cell_id) {
+        var cell = document.getElementById(cell_id);
+        cell.onclick = on_click;
+        cell.onmouseover = on_over;
+        cell.onmouseout = on_out;
+        var tooltip = cell.querySelector(".tooltip");
+        if (tooltip) {
+            tooltip.onclick = disable_tooltip;
+        }
+    });
+}
+
+function compute_groups_columns_masks() {
+    "use strict";
+    Object.keys(groups_data).forEach(function (group_id) {
+        var group_data = groups_data[group_id];
+        group_data.cell_ids.forEach(function (cell_id) {
+            var cell_data = cells_data[cell_id];
+            if (!group_data.columns_mask) {
+                group_data.columns_mask = cell_data.columns_mask.slice();
+            } else {
+                var columns_mask = cell_data.columns_mask;
+                columns_mask.forEach(function (is_column_used, column_index) {
+                    if (is_column_used > 0) {
+                        group_data.columns_mask[column_index] = 1;
+                    }
+                });
+            }
+        });
+    });
+}
+
+function on_load() {
+    "use strict";
+    register_handlers();
+    total_size = compute_visible_size(cells_data[root_id].columns_mask);
+    compute_groups_columns_masks();
+    on_click({
+        "currentTarget": document.getElementById(root_id),
+        "ctrlKey": false
+    });
+}
+
+// On resize, update all the cell widths.
+window.onresize = update_cells;
+
+// Properly initialize everything on load.
+window.onload = on_load;
+</script>
+</head>
+<body>
+<h1 id="title">Flame Graph</h1>
+<div id="graph" class="tooltipped">
+<div class="row">
+<div id="N31" class="leaf" style="background-color: rgb(218, 182, 54)">
+<div class="tooltip">
+<span class="name">choose_indices_of_seeds</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 25<br/>processes: 25</div>
+</div>
+<div class="label">choose_indices_of_seeds</div>
+</div>
+<div id="N32" class="leaf" style="background-color: rgb(241, 84, 54)">
+<div class="tooltip">
+<span class="name">optimize_partition_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 25<br/>processes: 25</div>
+</div>
+<div class="label">optimize_partition_indices_of_profiles</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N53" class="sum" style="background-color: rgb(235, 135, 54)">
+<div class="tooltip">
+<span class="name">(small)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+</div>
+<div class="label">(small)</div>
+</div>
+<div id="N33" class="leaf" style="background-color: rgb(234, 181, 20)">
+<div class="tooltip">
+<span class="name">add_co_occurrences_in_partition_of_subset_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 25<br/>processes: 25</div>
+</div>
+<div class="label">add_co_occurrences_in_partition_of_subset_of_profiles</div>
+</div>
+<div id="N30" class="sum" style="background-color: rgb(235, 9, 3)">
+<div class="tooltip">
+<span class="name">compute_partition_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 25<br/>processes: 25</div>
+</div>
+<div class="label">compute_partition_indices_of_profiles</div>
+</div>
+<div id="N29" class="leaf" style="background-color: rgb(210, 140, 31)">
+<div class="tooltip">
+<span class="name">compute_weights_of_edges_between_subset_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 25<br/>processes: 25</div>
+</div>
+<div class="label">compute_weights_of_edges_between_subset_of_profiles</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N26" class="sum" style="background-color: rgb(251, 23, 0)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_in_partition_of_subset_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">collect_co_occurrences_in_partition_of_subset_of_profiles</div>
+</div>
+<div id="N49" class="self" style="background-color: rgb(231, 153, 52)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_of_subsets_of_profiles;(self)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">(self)</div>
+</div>
+<div id="N20" class="leaf" style="background-color: rgb(208, 80, 19)">
+<div class="tooltip">
+<span class="name">compute_downsampled_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">compute_downsampled_data</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N21" class="leaf" style="background-color: rgb(244, 204, 30)">
+<div class="tooltip">
+<span class="name">(sync)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">(sync)</div>
+</div>
+<div id="N25" class="sum" style="background-color: rgb(231, 162, 13)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_of_subsets_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">collect_co_occurrences_of_subsets_of_profiles</div>
+</div>
+<div id="N23" class="leaf" style="background-color: rgb(216, 186, 41)">
+<div class="tooltip">
+<span class="name">compute_balanced_ranks_of_edges_between_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">compute_balanced_ranks_of_edges_between_profiles</div>
+</div>
+<div id="N22" class="leaf" style="background-color: rgb(251, 45, 54)">
+<div class="tooltip">
+<span class="name">compute_correlations_between_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">compute_correlations_between_profiles</div>
+</div>
+<div id="N19" class="sum" style="background-color: rgb(232, 48, 31)">
+<div class="tooltip">
+<span class="name">compute_prepared_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">compute_prepared_data</div>
+</div>
+<div id="N24" class="leaf" style="background-color: rgb(250, 14, 32)">
+<div class="tooltip">
+<span class="name">compute_weights_of_edges_between_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">compute_weights_of_edges_between_profiles</div>
+</div>
+<div id="N13" class="leaf" style="background-color: rgb(240, 110, 30)">
+<div class="tooltip">
+<span class="name">(sync)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">(sync)</div>
+</div>
+<div id="N48" class="self" style="background-color: rgb(228, 38, 3)">
+<div class="tooltip">
+<span class="name">compute_downsampled_columns;-;(self)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">(self)</div>
+</div>
+<div id="N42" class="leaf" style="background-color: rgb(216, 50, 23)">
+<div class="tooltip">
+<span class="name">(sync)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">(sync)</div>
+</div>
+<div id="N51" class="self" style="background-color: rgb(223, 63, 7)">
+<div class="tooltip">
+<span class="name">compute_outlier_profile_indices_in_group;-;(self)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">(self)</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N34" class="leaf" style="background-color: rgb(248, 143, 15)">
+<div class="tooltip">
+<span class="name">(gripe)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">(gripe)</div>
+</div>
+<div id="N18" class="sum" style="background-color: rgb(160, 160, 160)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_of_prepared_profiles;-</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">-</div>
+</div>
+<div id="N14" class="leaf" style="background-color: rgb(216, 172, 49)">
+<div class="tooltip">
+<span class="name">(gripe)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">(gripe)</div>
+</div>
+<div id="N12" class="sum" style="background-color: rgb(160, 160, 160)">
+<div class="tooltip">
+<span class="name">compute_downsampled_columns;-</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">-</div>
+</div>
+<div id="N43" class="leaf" style="background-color: rgb(220, 197, 43)">
+<div class="tooltip">
+<span class="name">(gripe)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">(gripe)</div>
+</div>
+<div id="N41" class="sum" style="background-color: rgb(160, 160, 160)">
+<div class="tooltip">
+<span class="name">compute_outlier_profile_indices_in_group;-</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1<br/>processes: 25</div>
+</div>
+<div class="label">-</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N17" class="sum" style="background-color: rgb(206, 152, 31)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_of_prepared_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">collect_co_occurrences_of_prepared_profiles</div>
+</div>
+<div id="N50" class="self" style="background-color: rgb(246, 195, 53)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_of_profiles;(self)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">(self)</div>
+</div>
+<div id="N11" class="sum" style="background-color: rgb(225, 28, 30)">
+<div class="tooltip">
+<span class="name">compute_downsampled_columns</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_downsampled_columns</div>
+</div>
+<div id="N10" class="leaf" style="background-color: rgb(223, 25, 41)">
+<div class="tooltip">
+<span class="name">compute_minimal_umis_of_profile</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_minimal_umis_of_profile</div>
+</div>
+<div id="N9" class="leaf" style="background-color: rgb(222, 33, 3)">
+<div class="tooltip">
+<span class="name">prepare_shared_memory_downsampled_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">prepare_shared_memory_downsampled_data</div>
+</div>
+<div id="N54" class="sum" style="background-color: rgb(237, 41, 3)">
+<div class="tooltip">
+<span class="name">(small)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+</div>
+<div class="label">(small)</div>
+</div>
+<div id="N40" class="sum" style="background-color: rgb(241, 52, 1)">
+<div class="tooltip">
+<span class="name">compute_outlier_profile_indices_in_group</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_outlier_profile_indices_in_group</div>
+</div>
+<div id="N37" class="leaf" style="background-color: rgb(251, 100, 43)">
+<div class="tooltip">
+<span class="name">choose_indices_of_seeds</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">choose_indices_of_seeds</div>
+</div>
+<div id="N38" class="leaf" style="background-color: rgb(252, 0, 45)">
+<div class="tooltip">
+<span class="name">optimize_partition_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">optimize_partition_indices_of_profiles</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N16" class="sum" style="background-color: rgb(246, 98, 37)">
+<div class="tooltip">
+<span class="name">collect_co_occurrences_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">collect_co_occurrences_of_profiles</div>
+</div>
+<div id="N8" class="sum" style="background-color: rgb(249, 105, 43)">
+<div class="tooltip">
+<span class="name">compute_downsampled_selected_profiles_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_downsampled_selected_profiles_data</div>
+</div>
+<div id="N39" class="sum" style="background-color: rgb(217, 74, 26)">
+<div class="tooltip">
+<span class="name">compute_final_group_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_final_group_indices_of_profiles</div>
+</div>
+<div id="N35" class="leaf" style="background-color: rgb(234, 71, 45)">
+<div class="tooltip">
+<span class="name">compute_final_weights_of_edges_between_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_final_weights_of_edges_between_profiles</div>
+</div>
+<div id="N36" class="sum" style="background-color: rgb(214, 39, 33)">
+<div class="tooltip">
+<span class="name">compute_partition_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_partition_indices_of_profiles</div>
+</div>
+<div id="N15" class="leaf" style="background-color: rgb(214, 58, 44)">
+<div class="tooltip">
+<span class="name">compute_selected_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_selected_data</div>
+</div>
+<div id="N6" class="leaf" style="background-color: rgb(217, 140, 21)">
+<div class="tooltip">
+<span class="name">filter_good_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">filter_good_data</div>
+</div>
+<div id="N5" class="leaf" style="background-color: rgb(208, 97, 52)">
+<div class="tooltip">
+<span class="name">load_base_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">load_base_data</div>
+</div>
+<div id="N7" class="leaf" style="background-color: rgb(232, 26, 43)">
+<div class="tooltip">
+<span class="name">pick_selected_profiles_data</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">pick_selected_profiles_data</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N55" class="sum" style="background-color: rgb(213, 144, 3)">
+<div class="tooltip">
+<span class="name">(small)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+</div>
+<div class="label">(small)</div>
+</div>
+<div id="N4" class="sum" style="background-color: rgb(230, 107, 11)">
+<div class="tooltip">
+<span class="name">compute_group_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_group_indices_of_profiles</div>
+</div>
+<div id="N46" class="leaf" style="background-color: rgb(238, 140, 53)">
+<div class="tooltip">
+<span class="name">sum_umis_of_groups</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">sum_umis_of_groups</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N3" class="sum" style="background-color: rgb(233, 46, 22)">
+<div class="tooltip">
+<span class="name">compute_best_group_indices_of_few_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_best_group_indices_of_few_profiles</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N2" class="sum" style="background-color: rgb(225, 153, 16)">
+<div class="tooltip">
+<span class="name">compute_best_group_indices_of_profiles</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_best_group_indices_of_profiles</div>
+</div>
+<div id="N52" class="self" style="background-color: rgb(220, 132, 2)">
+<div class="tooltip">
+<span class="name">compute_metacells;(self)</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">(self)</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N1" class="sum" style="background-color: rgb(222, 41, 32)">
+<div class="tooltip">
+<span class="name">compute_metacells</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+<div class="extra">
+invocations: 1</div>
+</div>
+<div class="label">compute_metacells</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+<div class="row">
+<div id="N0" class="sum" style="background-color: rgb(221, 96, 31)">
+<div class="tooltip">
+<span class="name">all</span><br/>
+<hr/>
+<div class="basic">samples: <span class="computed"></span></div>
+</div>
+<div class="label">all</div>
+</div>
+<div class="height">&nbsp;</div>
+</div>
+</div>
+<div id="width"></div>
+</body>
+</html>

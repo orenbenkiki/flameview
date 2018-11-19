@@ -15,19 +15,17 @@ correct python interpreter; by default it invokes `python3`.
 
 ## STATUS
 
-This is a beta version **0.1-b5**. It provides the basic functionality and seems
+This is a beta version **0.1-b6**. It provides the basic functionality and seems
 to work in Firefox, Chrome and Edge. However, it hasn't been heavily tested.
 Feedback is welcome.
 
-## EXAMPLE
+## EXAMPLES
 
 The
 [example.fg](https://github.com/orenbenkiki/flameview/blob/master/example.fg)
-was copied from one of the example files in ``flameview.pl``. The generated HTML
+was copied from one of the example files in ``flamegraph.pl``. The generated HTML
 (using the command line `flameview.py example.fg > example.html`), is in
-[example.html](https://htmlpreview.github.io/?https://github.com/orenbenkiki/flameview/blob/master/example.html).
-This example contains 21 invalid lines (lacking a count field) which are ignored
-with a warning.
+[example.fg.html](https://htmlpreview.github.io/?https://github.com/orenbenkiki/flameview/blob/master/example.fg.html).
 
 Hover over any cell to view its data in a tooltip. Alt-click to toggle the
 tooltips. If you hover over the ``collections::vec::from_elem::...`` cell, you
@@ -36,6 +34,15 @@ are highlighted. If you control-click any of them, you will see the same
 function is invoked in three different call chains. Hover over the bottom "all"
 cell to see these take 32.43% of the total samples. Click the bottom "all"
 cell to return to viewing the full graph.
+
+The [example.fg](https://github.com/orenbenkiki/flameview/blob/master/example.fv) was generated
+especially for use by ``flameview.py``, that is, it makes use of its additional features. It was
+captured from an execution of a bio-informatics pipeline. The execution is parallelized across
+multiple processes. Each spawn point is marked with a "-" cell (appears in gray). If you
+control-click on any "(sync)" cell, and then hover over the bottom "all" cell, you will see the
+total overhead of synchronization between these processes is 8.98%. The cell tooltips contain the
+number of invocations. Cells in parallel processes show the average measurements in each process,
+and their tooltip also list the number of processes used.
 
 ## USAGE
 
@@ -75,7 +82,7 @@ The output of ``flameview.py -h`` is:
                             lines.
       --output HTML         The HTML file to write; default: "-", write to
                             standard output
-      --version             Print the version information (0.1-b5) and exit
+      --version             Print the version information (0.1-b6) and exit
 
     INPUT: A flamegraph file. Each line must be in the format:
 
@@ -102,6 +109,9 @@ The `flameview` program does provide some features that `flamegraph` lacks:
 
 * Size data may be float rather than only integer. This allows, for example,
   to directly use wall clock time, in seconds, as the size measure.
+
+* Size data is optional. This allows attaching tooltip information to cells
+  that don't have direct measurements (but have sub-cells that do).
 
 * The output is an interactive file, using HTML rather than SVG. As a result,
   there is no need to specify the size of the graph in advance. Instead it

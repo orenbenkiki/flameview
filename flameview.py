@@ -21,7 +21,7 @@ from typing import TextIO
 from typing import Tuple
 
 
-VERSION = "0.1-b5"
+VERSION = "0.1-b6"
 
 
 # pylint: disable=too-many-lines
@@ -30,17 +30,13 @@ VERSION = "0.1-b5"
 # pylint: disable=too-many-instance-attributes
 
 
-class Entry:
-    def __init__(self, size: float, tooltip_html: str) -> None:
-        self.size = size
-        self.tooltip_html = tooltip_html
-
-
 class Node:
     _next_index = 0
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, size: Optional[float] = None, tooltip_html: str = '') -> None:
         self.index = Node._next_index
+        self.size = size
+        self.tooltip_html = tooltip_html
         Node._next_index += 1
         self.total_size = 0.0
         self.name = name
@@ -49,7 +45,6 @@ class Node:
         self.column = 0
         self.columns_span = 0
         self.group: Optional[str] = None
-        self.entry: Optional[Entry] = None
         self.nodes: Dict[str, 'Node'] = {}
 
 
@@ -148,22 +143,20 @@ def _load_data_file(path: str, is_strict: bool, file: TextIO) -> Node:
         \A
         (.*?)
         (?:
+            \s+
+            ([+]?\d*\.?\d+(?:[eE][-+]?\d+)?)
             (?:
                 \s+
-                ([+]?\d*\.?\d+(?:[eE][-+]?\d+)?)
-                (?:
-                    \s+
-                    ([+-]?\d*\.?\d+(?:[eE][-+]?\d+)?)
-                )?
-            )
-            (?:
-                \s+
-                [#]
-                \s*
-                (.*?)
+                ([+-]?\d*\.?\d+(?:[eE][-+]?\d+)?)
             )?
-            \s*
         )?
+        (?:
+            \s+
+            [#]
+            \s*
+            (.*?)
+        )?
+        \s*
         \Z
     ''', re.X)
     root = Node('all')
@@ -177,7 +170,8 @@ def _load_data_file(path: str, is_strict: bool, file: TextIO) -> Node:
             ignored += 1
             continue
         names_text, size_text, _difference_text, tooltip_text = match.group(1, 2, 3, 4)
-        _add_node(names_text.split(';'), root, Entry(float(size_text), tooltip_text or ''))
+        size = None if size_text is None else float(size_text)
+        _add_node(names_text.split(';'), root, size, tooltip_text or '')
 
     if ignored > 0:
         if is_strict:
@@ -187,22 +181,23 @@ def _load_data_file(path: str, is_strict: bool, file: TextIO) -> Node:
     return root
 
 
-def _add_node(names: List[str], parent: Node, entry: Entry) -> None:
+def _add_node(names: List[str], parent: Node, size: Optional[float], tooltip_html: str) -> None:
     name = names[0]
     name_node = parent.nodes.get(name)
     if name_node is None:
         name_node = parent.nodes[name] = Node(name)
 
     if len(names) > 1:
-        _add_node(names[1:], name_node, entry)
+        _add_node(names[1:], name_node, size, tooltip_html)
         return
 
-    if name_node.entry is None:
-        name_node.entry = entry
-        return
+    if size is not None:
+        if name_node.size is None:
+            name_node.size = size
+        else:
+            name_node.size += size
 
-    name_node.entry.size += entry.size
-    name_node.entry.tooltip_html = entry.tooltip_html
+    name_node.tooltip_html = tooltip_html
 
 
 SELF_NAME = "(self)"
@@ -210,28 +205,29 @@ SELF_NAME = "(self)"
 
 def _add_self_nodes(parent: Node) -> None:
     for node in parent.nodes.values():
+        if node.name == '-':
+            node.name = parent.name + ';-'
         _add_self_nodes(node)
         if not node.nodes:
-            assert node.entry is not None
             node.klass = 'leaf'
             continue
 
         assert node.klass == 'sum'
-        if not node.entry:
+        if node.size is None:
             continue
 
-        self_node = Node('%s;%s' % (node.name, SELF_NAME))
+        self_node = Node('%s;%s' % (node.name, SELF_NAME), node.size, node.tooltip_html)
         self_node.label = SELF_NAME
-        self_node.entry = node.entry
         self_node.klass = 'self'
+
         node.nodes[SELF_NAME] = self_node
-        node.entry = None
+        node.size = None
 
 
 def _compute_sizes(parent: Node) -> None:
     parent.total_size = 0.0
-    if parent.entry is not None:
-        parent.total_size += parent.entry.size
+    if parent.size is not None:
+        parent.total_size += parent.size
     for node in parent.nodes.values():
         _compute_sizes(node)
         parent.total_size += node.total_size
@@ -259,8 +255,7 @@ def _prune_small_tree(parent: Node, min_size: float) -> None:
     if len(large_nodes) == len(parent.nodes):
         return
 
-    small_node = Node('(small)')
-    small_node.entry = Entry(total_small_nodes_size, '')
+    small_node = Node('(small)', total_small_nodes_size)
     small_node.total_size = total_small_nodes_size
     parent.nodes = large_nodes
     parent.nodes['...'] = small_node
@@ -319,14 +314,14 @@ def _compute_column_sizes(parent: Node, sort_key: Callable[[Node], Any],
     parent.column = len(column_sizes)
 
     if parent.nodes:
-        assert parent.entry is None
+        assert parent.size is None
         for node in sorted(parent.nodes.values(), key=sort_key):
             _compute_column_sizes(node, sort_key, column_sizes)
             parent.columns_span = node.column + node.columns_span - parent.column
 
     else:
-        assert parent.entry is not None
-        column_sizes.append(parent.entry.size)
+        assert parent.size is not None
+        column_sizes.append(parent.size)
         parent.columns_span = 1
 
 
@@ -908,7 +903,7 @@ def _print_node(file: TextIO, sizename: str, palette: str, node: Node) -> None:
 
 def _node_color(node: Node, palette: str) -> str:
     if node.label == '-':
-        red, green, blue = 50.0, 50.0, 50.0
+        red, green, blue = 160.0, 160.0, 160.0
     else:
         red, green, blue = {
             'hot': _hot_color,
@@ -1010,9 +1005,9 @@ def _print_tooltip(file: TextIO, sizename: str, node: Node) -> None:
     file.write('<span class="name">%s</span><br/>\n' % _escape(node.name))
     file.write('<hr/>\n')
     file.write('<div class="basic">%s: <span class="computed"></span></div>\n' % sizename)
-    if node.entry and node.entry.tooltip_html:
+    if node.tooltip_html:
         file.write('<div class="extra">\n')
-        file.write(node.entry.tooltip_html)
+        file.write(node.tooltip_html)
         file.write('</div>\n')
     file.write('</div>\n')
 
