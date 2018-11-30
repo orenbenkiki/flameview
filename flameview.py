@@ -205,8 +205,8 @@ SELF_NAME = "(self)"
 
 def _add_self_nodes(parent: Node) -> None:
     for node in parent.nodes.values():
-        if node.name == '-':
-            node.name = parent.name + ';-'
+        if len(node.name) == 1:
+            node.name = parent.name + ';' + node.name
         _add_self_nodes(node)
         if not node.nodes:
             node.klass = 'leaf'
@@ -902,7 +902,7 @@ def _print_node(file: TextIO, sizename: str, palette: str, node: Node) -> None:
 
 
 def _node_color(node: Node, palette: str) -> str:
-    if node.label == '-':
+    if len(node.label) == 1:
         red, green, blue = 160.0, 160.0, 160.0
     else:
         red, green, blue = {
